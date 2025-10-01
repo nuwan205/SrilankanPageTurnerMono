@@ -5,15 +5,24 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "bun --watch run src/index.ts"
+    "dev": "bun --watch run src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.1",
+    "better-auth": "^1.0.6",
+    "drizzle-orm": "^0.36.4",
+    "dotenv": "^16.4.7",
     "hono": "^4.7.11",
     "shared": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251001.0",
     "@types/bun": "latest",
+    "drizzle-kit": "^0.28.1",
     "wrangler": "^4.40.3"
   }
 }

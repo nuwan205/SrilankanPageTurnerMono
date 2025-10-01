@@ -1,9 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ApiResponse } from "shared/dist";
-// import { auth } from "./auth";
-// import { config } from "./config";
-// import { apiRouter } from "./routes";
+import { auth } from "./auth";
+import { config } from "./config";
 
 const app = new Hono<{
   Variables: {
@@ -18,13 +17,13 @@ const app = new Hono<{
       [key: string]: any;
     } | null;
   };
-}>().basePath("/api");;
+}>();
 
 // CORS configuration - must be before auth routes
 app.use(
   "/api/auth/*",
   cors({
-    origin: ["http://192.168.8.137:8081", "http://localhost:5173"], // Vite default port
+    origin: ["http://192.168.8.137:8081", "http://127.0.0.1:5173"], // Vite default port
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
@@ -37,33 +36,36 @@ app.use(
 app.use(
   "*",
   cors({
-    origin: ["http://192.168.8.137:8081", "http://localhost:5173"],
+    origin: ["http://192.168.8.137:8081", "http://127.0.0.1:5173"],
     credentials: true,
   })
 );
 
-// API Routes - Mount all API routes under /api
-// app.route("/api", apiRouter);
-
 // Auth middleware
-// app.use("*", async (c, next) => {
-//   const session = await auth.api.getSession({ headers: c.req.raw.headers });
+app.use("*", async (c, next) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
-//   if (!session) {
-//     c.set("user", null);
-//     c.set("session", null);
-//     return next();
-//   }
+  if (!session) {
+    c.set("user", null);
+    c.set("session", null);
+    return next();
+  }
 
-//   c.set("user", session.user);
-//   c.set("session", session.session);
-//   return next();
-// });
+  c.set("user", session.user);
+  c.set("session", session.session);
+  return next();
+});
 
-// Mount Better Auth handler
-// app.on(["POST", "GET"], "/api/auth/*", (c) => {
-//   return auth.handler(c.req.raw);
-// });
+// Mount Better Auth handler - handle all auth routes
+app.all("/api/auth/*", async (c) => {
+  try {
+    const response = await auth.handler(c.req.raw);
+    return response;
+  } catch (error) {
+    console.error("Auth handler error:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+});
 
 // Protected session endpoint
 app.get("/api/session", (c) => {
@@ -77,7 +79,6 @@ app.get("/api/session", (c) => {
     user,
   });
 });
-
 // Existing routes
 app.get("/", (c) => {
   return c.text("Hello Hono!");
@@ -92,11 +93,6 @@ app.get("/hello", async (c) => {
   return c.json(data, { status: 200 });
 });
 
-// Start server for development
-// if (config.NODE_ENV === "development") {
-//   console.log(`Development mode - Bun will serve on default port`);
-//   console.log(`Server configuration port: ${config.port}`);
-// }
 
 // For Cloudflare Workers deployment
 export default app;
@@ -104,7 +100,7 @@ export default app;
 // Start HTTP server explicitly for local development
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
   import("@hono/node-server").then(({ serve }) => {
-    const port = 3000;
+    const port = config.port;
     serve({ fetch: app.fetch, port });
     console.log(`HTTP server listening on http://localhost:${port}`);
   });

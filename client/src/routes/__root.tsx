@@ -3,14 +3,17 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "../components/ui/toaster";
 import { Toaster as Sonner } from "../components/ui/sonner";
 import { TooltipProvider } from "../components/ui/tooltip";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 export const Route = createRootRoute({
 	component: () => (
-		<TooltipProvider>
-			<Toaster />
-			<Sonner />
-			<Outlet />
-			<TanStackRouterDevtools />
-		</TooltipProvider>
+		<ThemeProvider>
+			<TooltipProvider>
+				<Toaster />
+				<Sonner />
+				<Outlet />
+				<TanStackRouterDevtools />
+			</TooltipProvider>
+		</ThemeProvider>
 	),
 });
