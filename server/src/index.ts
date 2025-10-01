@@ -79,6 +79,10 @@ app.get("/api/session", (c) => {
     user,
   });
 });
+
+// Mount API routes
+import { apiRoutes } from "./routes";
+app.route("/api", apiRoutes);
 // Existing routes
 app.get("/", (c) => {
   return c.text("Hello Hono!");

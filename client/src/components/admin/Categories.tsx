@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,78 +12,127 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  getCategories,
-  saveCategory,
-  deleteCategory,
-  toggleCategoryEnabled,
-  type Category,
-} from '@/lib/data-store';
+import ImageUpload from '@/components/ui/ImageUpload';
+import { apiClient, type Category } from '@/lib/api';
 import { toast } from 'sonner';
 
 const AdminCategories: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>(getCategories());
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const [formData, setFormData] = useState({
-    id: '',
     title: '',
     description: '',
     icon: '',
-    image: '',
+    imageUrls: [] as string[], // Changed to array for multiple images
     color: '',
     enabled: true,
   });
 
-  const refreshCategories = () => {
-    setCategories(getCategories());
+  const refreshCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getCategories();
+      if (response.success && response.data) {
+        setCategories(response.data.categories);
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    refreshCategories();
+  }, []);
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
-    setFormData(category);
+    setFormData({
+      title: category.title,
+      description: category.description,
+      icon: category.icon,
+      imageUrls: [category.imageUrl], // Convert single URL to array
+      color: category.color,
+      enabled: category.enabled,
+    });
     setDialogOpen(true);
   };
 
   const handleNew = () => {
     setEditingCategory(null);
     setFormData({
-      id: '',
       title: '',
       description: '',
       icon: 'FolderTree',
-      image: '',
+      imageUrls: [], // Empty array for new category
       color: 'from-primary/20 to-primary/5',
       enabled: true,
     });
     setDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const categoryData: Category = {
-      ...formData,
-      id: formData.id || `category-${Date.now()}`,
-    };
-    saveCategory(categoryData);
-    refreshCategories();
-    setDialogOpen(false);
-    toast.success(editingCategory ? 'Category updated' : 'Category created');
-  };
+    
+    // Validate that at least one image is uploaded
+    if (formData.imageUrls.length === 0) {
+      toast.error('Please upload at least one image');
+      return;
+    }
+    
+    try {
+      // Convert imageUrls array to single imageUrl for API compatibility
+      const apiData = {
+        title: formData.title,
+        description: formData.description,
+        icon: formData.icon,
+        imageUrl: formData.imageUrls[0], // Use first image as primary
+        color: formData.color,
+        enabled: formData.enabled,
+      };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      deleteCategory(id);
-      refreshCategories();
-      toast.success('Category deleted');
+      if (editingCategory) {
+        await apiClient.updateCategory(editingCategory.id, apiData);
+        toast.success('Category updated successfully');
+      } else {
+        await apiClient.createCategory(apiData);
+        toast.success('Category created successfully');
+      }
+      await refreshCategories();
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      toast.error('Failed to save category');
     }
   };
 
-  const handleToggleEnabled = (id: string) => {
-    toggleCategoryEnabled(id);
-    refreshCategories();
-    toast.success('Category status updated');
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this category?')) {
+      try {
+        await apiClient.deleteCategory(id);
+        await refreshCategories();
+        toast.success('Category deleted successfully');
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+        toast.error('Failed to delete category');
+      }
+    }
+  };
+
+  const handleToggleEnabled = async (id: string) => {
+    try {
+      await apiClient.toggleCategoryEnabled(id);
+      await refreshCategories();
+      toast.success('Category status updated');
+    } catch (error) {
+      console.error('Failed to toggle category:', error);
+      toast.error('Failed to update category status');
+    }
   };
 
   return (
@@ -140,16 +189,13 @@ const AdminCategories: React.FC = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="image">Image Path</Label>
-                <Input
-                  id="image"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="/src/assets/category-name.jpg"
-                  required
-                />
-              </div>
+              <ImageUpload
+                value={formData.imageUrls}
+                onChange={(urls) => setFormData({ ...formData, imageUrls: urls })}
+                maxImages={3}
+                label="Category Images"
+                maxFileSize={5}
+              />
               <div className="space-y-2">
                 <Label htmlFor="color">Gradient Color Classes</Label>
                 <Input
@@ -188,11 +234,23 @@ const AdminCategories: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category) => (
+        {loading && (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
+        {!loading && categories.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No categories found. Create your first category to get started.</p>
+          </div>
+        )}
+        
+        {!loading && categories.length > 0 && categories.map((category) => (
           <Card key={category.id} className="overflow-hidden">
             <div className="relative h-40">
               <img
-                src={category.image}
+                src={category.imageUrl}
                 alt={category.title}
                 className="w-full h-full object-cover"
               />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TreePine, 
@@ -7,16 +7,79 @@ import {
   Mountain, 
   Zap, 
   Music,
-  ArrowRight 
+  ArrowRight,
+  FolderTree,
+  BookOpen
 } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 
-// Import category images
-import wildlifeImage from '@/assets/category-wildlife.jpg';
-import beachesImage from '@/assets/category-beaches.jpg';
-import heritageImage from '@/assets/category-heritage.jpg';
-import hillCountryImage from '@/assets/category-hill-country.jpg';
-import adventureImage from '@/assets/category-adventure.jpg';
-import culturalImage from '@/assets/category-cultural.jpg';
+// Icon mapping for dynamic icons
+const iconMap: Record<string, React.ElementType> = {
+  TreePine,
+  Waves,
+  Building2,
+  Mountain,
+  Zap,
+  Music,
+  FolderTree,
+};
+
+// Helper function to get icon component
+const getIconComponent = (iconName: string): React.ElementType => {
+  return iconMap[iconName] || FolderTree;
+};
+
+// Book reading spinner component
+const BookLoadingSpinner = () => (
+  <div className="flex flex-col items-center justify-center min-h-[400px]">
+    <motion.div
+      animate={{ 
+        rotateY: [0, 180, 360],
+      }}
+      transition={{ 
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="relative"
+    >
+      <BookOpen className="w-16 h-16 text-primary" />
+    </motion.div>
+    
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.5 }}
+      className="mt-6 text-center"
+    >
+      <h3 className="text-lg font-medium text-foreground mb-2">
+        Turning the Pages...
+      </h3>
+      <p className="text-muted-foreground text-sm">
+        Discovering amazing destinations in Sri Lanka
+      </p>
+      
+      {/* Animated dots */}
+      <div className="flex justify-center mt-4 space-x-1">
+        {[0, 1, 2].map((index) => (
+          <motion.div
+            key={index}
+            animate={{
+              scale: [1, 1.5, 1],
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              delay: index * 0.2,
+            }}
+            className="w-2 h-2 bg-primary rounded-full"
+          />
+        ))}
+      </div>
+    </motion.div>
+  </div>
+);
 
 interface Category {
   id: string;
@@ -27,62 +90,46 @@ interface Category {
   color: string;
 }
 
-const categories: Category[] = [
-  {
-    id: 'wildlife',
-    title: 'Wildlife Safari',
-    description: 'Encounter elephants, leopards, and exotic birds in pristine national parks',
-    icon: TreePine,
-    image: wildlifeImage,
-    color: 'from-accent/20 to-accent/5',
-  },
-  {
-    id: 'beaches',
-    title: 'Pristine Beaches',
-    description: 'Relax on golden sands with crystal-clear waters and swaying palms',
-    icon: Waves,
-    image: beachesImage,
-    color: 'from-secondary/20 to-secondary/5',
-  },
-  {
-    id: 'heritage',
-    title: 'Ancient Heritage',
-    description: 'Explore sacred temples, ancient ruins, and architectural marvels',
-    icon: Building2,
-    image: heritageImage,
-    color: 'from-cultural-gold/20 to-cultural-gold/5',
-  },
-  {
-    id: 'hill-country',
-    title: 'Hill Country',
-    description: 'Journey through misty mountains and emerald tea plantations',
-    icon: Mountain,
-    image: hillCountryImage,
-    color: 'from-accent/15 to-accent/3',
-  },
-  {
-    id: 'adventure',
-    title: 'Adventure Sports',
-    description: 'Experience thrilling activities from rafting to rock climbing',
-    icon: Zap,
-    image: adventureImage,
-    color: 'from-primary/20 to-primary/5',
-  },
-  {
-    id: 'cultural',
-    title: 'Cultural Tours',
-    description: 'Immerse in vibrant festivals, traditional arts, and local life',
-    icon: Music,
-    image: culturalImage,
-    color: 'from-lotus-pink/20 to-lotus-pink/5',
-  },
-];
+// Fallback categories for when API is not available
+
 
 interface CategoryPageProps {
   onCategorySelect: (categoryId: string) => void;
 }
 
 const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.getCategories();
+        const apiCategories = response.data?.categories || [];
+        
+        // Map API categories to match our interface
+        const mappedCategories = apiCategories.map((cat: any) => ({
+          id: cat.id,
+          title: cat.title,
+          description: cat.description,
+          icon: getIconComponent(cat.icon),
+          image: cat.imageUrl, // Use imageUrl from API
+          color: cat.color,
+        }));
+        
+        setCategories(mappedCategories);
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        // Keep empty categories on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-paper relative overflow-hidden">
       {/* Cultural Pattern Background */}
@@ -103,11 +150,14 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
         </p>
       </motion.div>
 
-      {/* Categories Grid */}
+      {/* Loading Spinner or Categories Grid */}
       <div className="relative z-10 px-4 pb-20">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {categories.map((category, index) => (
+          {loading && <BookLoadingSpinner />}
+          
+          {!loading && categories.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {categories.map((category, index) => (
               <motion.div
                 key={category.id}
                 initial={{ opacity: 0, y: 40, scale: 0.9 }}
@@ -158,7 +208,16 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
               </motion.div>
             ))}
-          </div>
+            </div>
+          )}
+          
+          {!loading && categories.length === 0 && (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+              <BookOpen className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Categories Found</h3>
+              <p className="text-muted-foreground text-sm">Please check back later for amazing destinations.</p>
+            </div>
+          )}
         </div>
       </div>
 

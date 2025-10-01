@@ -116,6 +116,9 @@
     "shared": {
       "name": "shared",
       "version": "0.0.1",
+      "dependencies": {
+        "zod": "^4.1.11",
+      },
       "devDependencies": {
         "typescript": "^5.8.3",
       },
