@@ -74,7 +74,7 @@ const BookLayout: React.FC<BookLayoutProps> = ({
     }
   };
 
-  const handleDragEnd = (event: any, info: any) => {
+  const handleDragEnd = (_event: any, info: any) => {
     // Much stricter thresholds to prevent accidental swipes
     const swipeThreshold = isMobile ? 40 : 80;
     const velocity = Math.abs(info.velocity.x);

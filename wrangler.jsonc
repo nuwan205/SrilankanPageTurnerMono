@@ -1,0 +1,12 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "sri-lankan-page-tuner", // Name of your project
+	"main": "./server/dist/index.js", // Path to worker
+	"compatibility_date": "2025-05-25",
+	"workers_dev": true, // Enable workers.dev subdomain
+	"assets": {
+		"directory": "./client/dist", // Path to client build folder
+		"not_found_handling": "single-page-application" // Handle SPA routing
+	},
+	"compatibility_flags": ["nodejs_compat"] // Enable node for Vite path features
+}
