@@ -1,68 +1,511 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Sri Lankan Tourism Design System - Rich cultural colors and textures 
+All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
+*/
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Sri Lankan Cultural Color Palette */
+    --background: 45 15% 97%; /* Cream paper */
+    --foreground: 25 20% 15%; /* Dark brown text */
+
+    --card: 45 25% 96%; /* Warm paper white */
+    --card-foreground: 25 20% 15%;
+
+    --popover: 45 25% 96%;
+    --popover-foreground: 25 20% 15%;
+
+    /* Saffron & Temple Gold - Primary Sri Lankan colors */
+    --primary: 35 85% 55%; /* Rich saffron orange */
+    --primary-foreground: 45 25% 96%;
+    --primary-glow: 35 90% 65%; /* Brighter saffron for accents */
+
+    /* Ocean & Sapphire Blues - Representing coastal beauty */
+    --secondary: 210 85% 45%; /* Deep ocean blue */
+    --secondary-foreground: 45 25% 96%;
+
+    /* Tea Plantation Greens */
+    --accent: 140 60% 35%; /* Emerald tea green */
+    --accent-foreground: 45 25% 96%;
+
+    /* Cultural Earth Tones */
+    --muted: 45 12% 90%; /* Light warm gray */
+    --muted-foreground: 25 15% 45%;
+
+    /* Heritage & Temple Colors */
+    --cultural-gold: 45 85% 60%; /* Temple gold */
+    --cultural-red: 0 70% 50%; /* Traditional red */
+    --lotus-pink: 320 40% 75%; /* Lotus flower pink */
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 25% 96%;
+
+    --border: 45 20% 85%;
+    --input: 45 20% 90%;
+    --ring: 35 85% 55%;
+
+    --radius: 0.75rem; /* Softer, book-like edges */
+
+    /* Book & Paper Effects */
+    --paper-texture: 45 20% 94%;
+    --page-shadow: 25 15% 25%;
+    --binding-dark: 25 30% 20%;
+
+    /* Gradients for rich visual appeal */
+    --gradient-saffron: linear-gradient(145deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-ocean: linear-gradient(145deg, hsl(var(--secondary)), hsl(210 90% 55%));
+    --gradient-heritage: linear-gradient(145deg, hsl(var(--cultural-gold)), hsl(var(--primary)));
+    --gradient-paper: linear-gradient(135deg, hsl(var(--background)), hsl(var(--paper-texture)));
+    
+    /* Elegant shadows with cultural warmth */
+    --shadow-soft: 0 4px 20px hsl(var(--page-shadow) / 0.1);
+    --shadow-book: 0 10px 40px hsl(var(--page-shadow) / 0.15);
+    --shadow-cultural: 0 8px 32px hsl(var(--primary) / 0.2);
+
+    /* Smooth transitions for natural book feel */
+    --transition-page-flip: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Book flip physics */
+    --book-perspective: 1200px;
+    --page-flip-angle: 180deg;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  button {
-    background-color: #f9f9f9;
+
+  /* Apply Sri Lankan cultural background to the root */
+  html {
+    min-height: 100vh; 
+  }
+  
+  body {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* Responsive Flip Book Animations */
+@layer components {
+  .book-container {
+    @apply relative w-full mx-auto;
+    max-width: min(100vw, 1200px);
+    perspective: 1200px;
+    perspective-origin: center center;
+    padding: 0;
+    margin: 0 auto;
+    overflow: hidden; /* Prevent horizontal overflow */
+    border-radius: 12px; /* Match the book pages border radius */
+    /* Remove fixed height - let it vary naturally with content */
+    min-height: 400px; /* Just a minimum to prevent collapse */
+    /* Enhanced realistic book shadows with left-side depth */
+    filter: 
+      /* Main book shadow on surface */
+      drop-shadow(0 20px 40px rgba(0, 0, 0, 0.15)) 
+      drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1))
+      /* Left side book thickness shadow */
+      drop-shadow(-8px 8px 16px rgba(0, 0, 0, 0.2))
+      drop-shadow(-4px 4px 8px rgba(0, 0, 0, 0.15))
+      /* Subtle book spine shadow */
+      drop-shadow(-12px 12px 24px rgba(0, 0, 0, 0.1));
+    /* Create clean area for book */
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Clean background area specifically for the book */
+  .book-container::before {
+    content: '';
+    position: absolute;
+    inset: -3rem;
+    background: hsl(var(--background));
+    border-radius: 2rem;
+    z-index: -1;
+    box-shadow: 
+      0 0 0 1px hsl(var(--border) / 0.1),
+      0 0 60px rgba(255, 255, 255, 0.9),
+      0 0 120px rgba(255, 255, 255, 0.5);
+  }
+
+
+  .desk-surface {
+    background-image: url('/src/assets/desk-surface.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Keep background completely fixed */
+    min-height: 100vh;
+    /* Remove any height constraints to allow natural content flow */
+    position: relative; /* Ensure proper stacking context */
+  }
+
+
+
+  .desk-surface::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: brightness(0.95);
+  }
+
+  /* Mobile-specific book container */
+  .mobile-book {
+    max-width: 100vw;
+    width: 100vw;
+    padding: 0.5rem;
+    perspective: 800px;
+    overflow-x: hidden;
+    position: relative;
+    touch-action: pan-y pinch-zoom; /* Allow vertical scrolling and pinch zoom only */
+    border-radius: 8px; /* Smaller border radius for mobile to match mobile pages */
+    /* Enhanced mobile book shadow */
+    filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.12)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+    z-index: 1;
+    contain: layout style paint; /* Improve performance and prevent overflow */
+  }
+
+  /* Clean background for mobile book */
+  .mobile-book::before {
+    content: '';
+    position: absolute;
+    inset: -1.5rem;
+    background: hsl(var(--background));
+    border-radius: 1.5rem;
+    z-index: -1;
+    box-shadow: 
+      0 0 0 1px hsl(var(--border) / 0.1),
+      0 0 40px rgba(255, 255, 255, 0.8),
+      0 0 80px rgba(255, 255, 255, 0.4);
+  }
+
+  .book-page-container {
+    @apply relative w-full;
+    overflow: hidden; /* Ensure content doesn't overflow */
+    max-width: 100vw;
+    contain: layout style paint;
+  }
+
+  .book-page {
+    @apply relative w-full bg-gradient-to-br from-background to-card;
+    @apply shadow-lg rounded-lg overflow-hidden;
+    min-height: 100vh;
+    min-height: 100dvh; /* Better mobile support */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    top: 0; /* Force top positioning */
+    left: 0; /* Force left positioning */
+    transform-origin: center center; /* Ensure transforms are centered */
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    /* Enhanced book-like appearance */
+    border: 2px solid hsl(var(--border));
+    border-radius: 12px;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.1),
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--card)) 50%, 
+      hsl(var(--background)) 100%);
+    /* Enable smooth touch interactions - allow vertical scroll but restrict horizontal */
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Mobile-specific adjustments */
+  @media (max-width: 768px) {
+    .book-container {
+      padding: 0.25rem;
+      max-width: 100vw;
+      overflow-x: hidden;
+      /* Remove fixed height - allow natural content sizing */
+      min-height: 300px; /* Just prevent collapse on mobile */
+      /* Improve touch responsiveness */
+      -webkit-tap-highlight-color: transparent;
+      touch-action: pan-y; /* Allow vertical scroll only */
+    }
+
+    .book-page {
+      min-height: calc(100vh - 1rem);
+      min-height: calc(100dvh - 1rem);
+      @apply rounded-md shadow-md;
+      margin: 0;
+      width: 100%;
+      /* Enhanced mobile book styling */
+      border: 1.5px solid hsl(var(--border));
+      border-radius: 8px;
+      box-shadow: 
+        0 2px 12px rgba(0, 0, 0, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset -2px 0 4px rgba(0, 0, 0, 0.05); /* Subtle binding shadow */
+      background: linear-gradient(135deg, 
+        hsl(var(--background)) 0%, 
+        hsl(var(--card)) 50%, 
+        hsl(var(--background)) 100%);
+      /* Enhanced touch interaction - allow vertical scroll */
+      touch-action: pan-y;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .book-page-container {
+      width: 100%;
+      overflow-x: hidden;
+      /* Smooth touch scrolling */
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+  }
+
+  /* Cultural pattern - mobile optimized */
+  .cultural-pattern {
+    @apply absolute inset-0 opacity-5;
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(var(--primary)) 1px, transparent 1px),
+      linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.03) 49%, rgba(255,255,255,0.03) 51%, transparent 52%);
+    background-size: 60px 60px, 20px 20px;
+    /* Add subtle paper texture */
+    background-blend-mode: overlay;
+  }
+
+  @media (max-width: 768px) {
+    .cultural-pattern {
+      opacity: 0.02; /* Reduced opacity for mobile */
+      background-size: 40px 40px;
+    }
+  }
+
+  /* Card styles with mobile responsiveness */
+  .heritage-card {
+    @apply bg-gradient-to-br from-card to-background border border-primary/20;
+    @apply shadow-lg hover:shadow-xl transition-all duration-300;
+    @apply backdrop-blur-sm;
+  }
+
+  @media (max-width: 768px) {
+    .heritage-card {
+      @apply shadow-md hover:shadow-lg p-4;
+    }
+  }
+
+  .category-tile {
+    @apply relative overflow-hidden rounded-xl bg-gradient-to-br from-card to-background;
+    @apply border border-primary/20 shadow-md hover:shadow-lg;
+    @apply transition-all duration-300 cursor-pointer;
+  }
+
+  /* Mobile touch-friendly interactions */
+  @media (max-width: 768px) {
+    .category-tile {
+      @apply active:scale-95 active:shadow-xl;
+    }
+    
+    .category-tile:hover {
+      transform: none; /* Disable hover effects on mobile */
+    }
+  }
+
+  @media (min-width: 769px) {
+    .category-tile:hover {
+      @apply scale-105;
+    }
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Mobile-specific utilities */
+  .no-scroll {
+    overflow: hidden;
+  }
+
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  .prevent-scroll {
+    overscroll-behavior: none;
+  }
+
+  /* Safe area utilities for mobile */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Responsive viewport utilities */
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  @media (max-width: 768px) {
+    .min-h-screen-safe {
+      min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+  }
+
+  .text-gradient-saffron {
+    background: var(--gradient-saffron);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-heritage {
+    background: var(--gradient-heritage);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Background gradient utilities */
+  .bg-gradient-saffron {
+    background: var(--gradient-saffron);
+  }
+
+  .bg-gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+
+  .bg-gradient-heritage {
+    background: var(--gradient-heritage);
+  }
+
+  .bg-gradient-paper {
+    background: var(--gradient-paper);
+  }
+
+  /* Glow effect utilities */
+  .saffron-glow {
+    box-shadow: var(--shadow-cultural);
+  }
+
+  .shadow-cultural {
+    box-shadow: var(--shadow-cultural);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-book {
+    box-shadow: var(--shadow-book);
+  }
+
+  /* Hover utilities */
+  .hover\:shadow-cultural:hover {
+    box-shadow: var(--shadow-cultural);
+  }
+
+  .hover\:shadow-soft:hover {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .hover\:shadow-book:hover {
+    box-shadow: var(--shadow-book);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground font-light;
+    @apply selection:bg-primary/20 selection:text-primary;
+    background: transparent !important; /* Force transparent to let html background show through */
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+
+  .book-title {
+    @apply text-4xl md:text-6xl lg:text-7xl font-light tracking-wide;
+    @apply text-gradient-saffron;
+  }
+
+  .chapter-title {
+    @apply text-2xl md:text-3xl lg:text-4xl font-medium;
+    @apply text-foreground/90;
   }
 }
