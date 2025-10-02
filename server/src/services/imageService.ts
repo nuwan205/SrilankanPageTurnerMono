@@ -138,6 +138,7 @@ export class ImageService {
     url: string;
     publicUrl: string;
     filename: string;
+    size: number;
     uploadedAt: string;
     variants: Record<string, string>;
   }> {
@@ -150,6 +151,7 @@ export class ImageService {
 
       const arrayBuffer = await imageResponse.arrayBuffer();
       const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+      const size = arrayBuffer.byteLength;
       
       // Generate filename if not provided
       const finalFilename = filename || `image-${Date.now()}.jpg`;
@@ -160,7 +162,7 @@ export class ImageService {
         headers: {
           "Authorization": `Bearer ${this.apiToken}`,
           "Content-Type": contentType,
-          "Content-Length": arrayBuffer.byteLength.toString(),
+          "Content-Length": size.toString(),
         },
         body: arrayBuffer,
       });
@@ -178,6 +180,7 @@ export class ImageService {
         url: publicUrl,
         publicUrl: publicUrl,
         filename: finalFilename,
+        size: size,
         uploadedAt: new Date().toISOString(),
         variants,
       };
@@ -217,6 +220,7 @@ export class ImageService {
     url: string;
     publicUrl: string;
     filename: string;
+    size: number;
     uploadedAt: string;
     variants: Record<string, string>;
   }> {
@@ -236,6 +240,8 @@ export class ImageService {
       const publicUrl = `${this.publicBucketUrl}/${imageKey}`;
       const variants = this.buildImageVariants(imageKey);
       const lastModified = response.headers.get('last-modified') || new Date().toISOString();
+      const contentLength = response.headers.get('content-length');
+      const size = contentLength ? parseInt(contentLength, 10) : 0;
       const filename = imageKey.split('/').pop() || imageKey;
 
       return {
@@ -243,6 +249,7 @@ export class ImageService {
         url: publicUrl,
         publicUrl: publicUrl,
         filename: filename,
+        size: size,
         uploadedAt: lastModified,
         variants,
       };

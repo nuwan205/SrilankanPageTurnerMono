@@ -15,6 +15,8 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
 import { Route as AdminDestinationsRouteImport } from './routes/admin/destinations'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminDestinationsIndexRouteImport } from './routes/admin/destinations.index'
+import { Route as AdminDestinationsDestinationIdPlacesRouteImport } from './routes/admin/destinations/$destinationId/places'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -46,30 +48,46 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDestinationsIndexRoute = AdminDestinationsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminDestinationsRoute,
+} as any)
+const AdminDestinationsDestinationIdPlacesRoute =
+  AdminDestinationsDestinationIdPlacesRouteImport.update({
+    id: '/$destinationId/places',
+    path: '/$destinationId/places',
+    getParentRoute: () => AdminDestinationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/destinations': typeof AdminDestinationsRoute
+  '/admin/destinations': typeof AdminDestinationsRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/destinations/': typeof AdminDestinationsIndexRoute
+  '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/destinations': typeof AdminDestinationsRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/destinations': typeof AdminDestinationsIndexRoute
+  '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/destinations': typeof AdminDestinationsRoute
+  '/admin/destinations': typeof AdminDestinationsRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/destinations/': typeof AdminDestinationsIndexRoute
+  '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,13 +98,16 @@ export interface FileRouteTypes {
     | '/admin/destinations'
     | '/auth/signin'
     | '/admin/'
+    | '/admin/destinations/'
+    | '/admin/destinations/$destinationId/places'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin/categories'
-    | '/admin/destinations'
     | '/auth/signin'
     | '/admin'
+    | '/admin/destinations'
+    | '/admin/destinations/$destinationId/places'
   id:
     | '__root__'
     | '/'
@@ -95,6 +116,8 @@ export interface FileRouteTypes {
     | '/admin/destinations'
     | '/auth/signin'
     | '/admin/'
+    | '/admin/destinations/'
+    | '/admin/destinations/$destinationId/places'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -147,18 +170,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/destinations/': {
+      id: '/admin/destinations/'
+      path: '/'
+      fullPath: '/admin/destinations/'
+      preLoaderRoute: typeof AdminDestinationsIndexRouteImport
+      parentRoute: typeof AdminDestinationsRoute
+    }
+    '/admin/destinations/$destinationId/places': {
+      id: '/admin/destinations/$destinationId/places'
+      path: '/$destinationId/places'
+      fullPath: '/admin/destinations/$destinationId/places'
+      preLoaderRoute: typeof AdminDestinationsDestinationIdPlacesRouteImport
+      parentRoute: typeof AdminDestinationsRoute
+    }
   }
 }
 
+interface AdminDestinationsRouteChildren {
+  AdminDestinationsIndexRoute: typeof AdminDestinationsIndexRoute
+  AdminDestinationsDestinationIdPlacesRoute: typeof AdminDestinationsDestinationIdPlacesRoute
+}
+
+const AdminDestinationsRouteChildren: AdminDestinationsRouteChildren = {
+  AdminDestinationsIndexRoute: AdminDestinationsIndexRoute,
+  AdminDestinationsDestinationIdPlacesRoute:
+    AdminDestinationsDestinationIdPlacesRoute,
+}
+
+const AdminDestinationsRouteWithChildren =
+  AdminDestinationsRoute._addFileChildren(AdminDestinationsRouteChildren)
+
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminDestinationsRoute: typeof AdminDestinationsRoute
+  AdminDestinationsRoute: typeof AdminDestinationsRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminDestinationsRoute: AdminDestinationsRoute,
+  AdminDestinationsRoute: AdminDestinationsRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
 }
 

@@ -1,6 +1,7 @@
 import { db } from "../config/drizzle";
 import { categories } from "../db/schema/categories";
 import { eq, desc } from "drizzle-orm";
+import { imageService } from "./imageService";
 import type { 
   Category as SharedCategory, 
   CreateCategory, 
@@ -77,10 +78,33 @@ export class CategoryService {
    * Delete a category
    */
   async deleteCategory(id: string): Promise<boolean> {
+    // First, get the category to retrieve its image
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, id))
+      .limit(1);
+
+    if (!category) {
+      return false;
+    }
+
+    // Delete the category from database
     const result = await db
       .delete(categories)
       .where(eq(categories.id, id))
       .returning({ id: categories.id });
+
+    // If deletion successful and category has an image, delete it from R2 storage
+    if (result.length > 0 && category.imageUrl) {
+      try {
+        const imageKey = this.extractImageKey(category.imageUrl);
+        await imageService.deleteImage(imageKey);
+        console.log(`Deleted category image from R2: ${imageKey}`);
+      } catch (error) {
+        console.error(`Failed to delete category image from R2: ${category.imageUrl}`, error);
+      }
+    }
 
     return result.length > 0;
   }
@@ -109,6 +133,20 @@ export class CategoryService {
       .returning();
 
     return this.mapToSharedCategory(updatedCategory);
+  }
+
+  /**
+   * Extract image key from full URL
+   */
+  private extractImageKey(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      return pathname.startsWith('/') ? pathname.substring(1) : pathname;
+    } catch {
+      // If URL parsing fails, assume it's already a key
+      return url;
+    }
   }
 
   /**

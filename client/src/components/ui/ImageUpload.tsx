@@ -27,6 +27,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -98,11 +99,56 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     handleFileSelect(files);
   }, [disabled, uploading, handleFileSelect]);
 
-  const removeImage = useCallback((indexToRemove: number) => {
+  const extractImageKey = (url: string): string => {
+    // Extract the image key from the full URL
+    // Format: https://bucket-url/images/timestamp-id.ext
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      // Remove leading slash and return the key (images/timestamp-id.ext)
+      const key = pathname.startsWith('/') ? pathname.substring(1) : pathname;
+      console.log('Extracted image key:', key, 'from URL:', url);
+      return key;
+    } catch {
+      // If URL parsing fails, assume it's already a key
+      console.log('URL parsing failed, using as key:', url);
+      return url;
+    }
+  };
+
+  const removeImage = useCallback(async (indexToRemove: number) => {
+    if (deletingIndex !== null) {
+      console.log('Already deleting another image, skipping');
+      return; // Prevent multiple simultaneous deletions
+    }
+
+    console.log('Starting image deletion at index:', indexToRemove);
+    setDeletingIndex(indexToRemove);
+    const urlToRemove = value[indexToRemove];
+    
+    // First, remove from UI immediately for better UX
     const newUrls = value.filter((_, index) => index !== indexToRemove);
     onChange(newUrls);
-    toast.success('Image removed');
-  }, [value, onChange]);
+    
+    try {
+      // Then, delete image from R2 storage in background
+      const imageKey = extractImageKey(urlToRemove);
+      console.log('Calling deleteImage API with key:', imageKey);
+      const response = await apiClient.deleteImage(imageKey);
+      console.log('Delete response:', response);
+      
+      if (response.success) {
+        toast.success('Image removed successfully');
+      } else {
+        toast.warning('Image removed from list but may still exist in storage');
+      }
+    } catch (error) {
+      console.error('Failed to delete image from storage:', error);
+      toast.warning('Image removed from list but deletion from storage failed');
+    } finally {
+      setDeletingIndex(null);
+    }
+  }, [value, onChange, deletingIndex]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e.target.files);
@@ -189,7 +235,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {value.map((url, index) => (
               <Card key={`${url}-${index}`} className="relative group overflow-hidden">
-                <div className="aspect-square">
+                <div className={`aspect-square ${deletingIndex === index ? 'opacity-50' : ''}`}>
                   <img
                     src={url}
                     alt={`Upload ${index + 1}`}
@@ -202,22 +248,27 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
                 
                 {/* Remove Button */}
-                <Button
+                <button
                   type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
+                  className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  onClick={async (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    removeImage(index);
+                    console.log('Delete button clicked for index:', index);
+                    await removeImage(index);
                   }}
-                  disabled={disabled || uploading}
+                  disabled={disabled || uploading || deletingIndex === index}
+                  aria-label="Remove image"
                 >
-                  <X className="h-3 w-3" />
-                </Button>
+                  {deletingIndex === index ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <X className="h-3 w-3" />
+                  )}
+                </button>
 
                 {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               </Card>
             ))}
           </div>

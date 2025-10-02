@@ -11,6 +11,18 @@ export type {
   CategoryQuery,
   CategoriesResponse,
   CategoryResponse,
+  Destination,
+  CreateDestination,
+  UpdateDestination,
+  DestinationQuery,
+  DestinationsResponse,
+  DestinationResponse,
+  Place,
+  CreatePlace,
+  UpdatePlace,
+  PlaceQuery,
+  PlacesResponse,
+  PlaceResponse,
   ImageUpload,
   ImageResponse
 } from "./admin";

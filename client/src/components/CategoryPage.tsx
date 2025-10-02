@@ -90,8 +90,57 @@ interface Category {
   color: string;
 }
 
-// Fallback categories for when API is not available
-
+// Dummy categories data
+const dummyCategories: Category[] = [
+  {
+    id: 'wildlife',
+    title: 'Wildlife Safari',
+    description: 'Experience incredible wildlife encounters in pristine national parks. Spot leopards, elephants, and exotic birds in their natural habitat.',
+    icon: TreePine,
+    image: '/src/assets/category-wildlife.jpg',
+    color: 'from-emerald-900/60 to-transparent'
+  },
+  {
+    id: 'beaches',
+    title: 'Beach Paradise',
+    description: 'Relax on golden sandy beaches with crystal-clear waters. Perfect for surfing, snorkeling, and unforgettable sunsets.',
+    icon: Waves,
+    image: '/src/assets/category-beaches.jpg',
+    color: 'from-blue-900/60 to-transparent'
+  },
+  {
+    id: 'heritage',
+    title: 'Ancient Heritage',
+    description: 'Explore UNESCO World Heritage Sites with ancient ruins, rock fortresses, and sacred temples from Sri Lanka\'s rich history.',
+    icon: Building2,
+    image: '/src/assets/category-heritage.jpg',
+    color: 'from-amber-900/60 to-transparent'
+  },
+  {
+    id: 'cultural',
+    title: 'Cultural Wonders',
+    description: 'Immerse yourself in vibrant cultural traditions, colorful festivals, and sacred Buddhist temples.',
+    icon: Music,
+    image: '/src/assets/category-cultural.jpg',
+    color: 'from-purple-900/60 to-transparent'
+  },
+  {
+    id: 'adventure',
+    title: 'Adventure Trails',
+    description: 'Embark on thrilling adventures with trekking, hiking, and exploring scenic mountain trails and waterfalls.',
+    icon: Mountain,
+    image: '/src/assets/category-adventure.jpg',
+    color: 'from-orange-900/60 to-transparent'
+  },
+  {
+    id: 'hill-country',
+    title: 'Hill Country',
+    description: 'Discover lush tea plantations, cool mountain air, and breathtaking views in Sri Lanka\'s scenic highlands.',
+    icon: Mountain,
+    image: '/src/assets/category-hill-country.jpg',
+    color: 'from-green-900/60 to-transparent'
+  }
+];
 
 interface CategoryPageProps {
   onCategorySelect: (categoryId: string) => void;
@@ -105,23 +154,36 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
     const loadCategories = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.getCategories();
-        const apiCategories = response.data?.categories || [];
         
-        // Map API categories to match our interface
-        const mappedCategories = apiCategories.map((cat: any) => ({
-          id: cat.id,
-          title: cat.title,
-          description: cat.description,
-          icon: getIconComponent(cat.icon),
-          image: cat.imageUrl, // Use imageUrl from API
-          color: cat.color,
-        }));
-        
-        setCategories(mappedCategories);
+        // Try to fetch from API first
+        try {
+          const response = await apiClient.getCategories();
+          const apiCategories = response.data?.categories || [];
+          
+          if (apiCategories.length > 0) {
+            // Map API categories to match our interface
+            const mappedCategories = apiCategories.map((cat: any) => ({
+              id: cat.id,
+              title: cat.title,
+              description: cat.description,
+              icon: getIconComponent(cat.icon),
+              image: cat.imageUrl,
+              color: cat.color,
+            }));
+            
+            setCategories(mappedCategories);
+          } else {
+            // Use dummy data if API returns empty
+            setCategories(dummyCategories);
+          }
+        } catch (apiError: unknown) {
+          console.log('API not available, using dummy data', apiError);
+          // Use dummy data on API error
+          setCategories(dummyCategories);
+        }
       } catch (error) {
         console.error('Failed to load categories:', error);
-        // Keep empty categories on error
+        setCategories(dummyCategories);
       } finally {
         setLoading(false);
       }

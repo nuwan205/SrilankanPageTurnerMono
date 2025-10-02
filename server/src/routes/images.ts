@@ -122,6 +122,7 @@ imageRoutes.post("/upload-from-url", async (c) => {
 imageRoutes.delete("/:imageId", async (c) => {
   try {
     const imageId = c.req.param("imageId");
+    console.log('Delete image request received for imageId:', imageId);
 
     if (!imageId) {
       return c.json({
@@ -131,7 +132,9 @@ imageRoutes.delete("/:imageId", async (c) => {
       } as ApiResponse, 400);
     }
 
+    console.log('Calling imageService.deleteImage with:', imageId);
     await imageService.deleteImage(imageId);
+    console.log('Image deleted successfully:', imageId);
 
     return c.json({
       success: true,

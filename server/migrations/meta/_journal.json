@@ -15,6 +15,20 @@
       "when": 1759319032466,
       "tag": "0001_tidy_roulette",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759394109065,
+      "tag": "0002_amazing_paibok",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759405900296,
+      "tag": "0003_dashing_famine",
+      "breakpoints": true
     }
   ]
 }
