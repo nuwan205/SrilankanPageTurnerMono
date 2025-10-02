@@ -151,6 +151,8 @@ export const PlaceSchema = z.object({
   description: z.string().min(1, "Description is required"),
   rating: z.number().min(0).max(5).default(0),
   duration: z.string().min(1, "Duration is required"),
+  timeDuration: z.string().min(1, "Time duration is required"),
+  highlights: z.array(z.string()).min(1, "At least one highlight required"),
   images: z.array(z.string().regex(/^https?:\/\/.+/, "Valid image URL required")).min(1, "At least one image required").max(3, "Maximum 3 images allowed"),
   location: z.object({
     lat: z.number(),

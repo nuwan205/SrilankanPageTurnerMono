@@ -99,11 +99,11 @@ placeRoutes.post("/", requireAuth, async (c) => {
     const body = await c.req.json();
 
     // Validate required fields
-    if (!body.name || !body.description || !body.destinationId || !body.location) {
+    if (!body.name || !body.description || !body.destinationId || !body.location || !body.timeDuration || !body.highlights) {
       return c.json({
         success: false,
         error: "Missing required fields",
-        message: "Please provide name, description, destinationId, and location",
+        message: "Please provide name, description, destinationId, location, timeDuration, and highlights",
       } as ApiResponse, 400);
     }
 
@@ -113,6 +113,8 @@ placeRoutes.post("/", requireAuth, async (c) => {
       description: body.description,
       rating: body.rating || 0,
       duration: body.duration,
+      timeDuration: body.timeDuration,
+      highlights: body.highlights || [],
       images: body.images || [],
       location: body.location,
     };
@@ -159,6 +161,8 @@ placeRoutes.put("/:id", requireAuth, async (c) => {
       description: body.description,
       rating: body.rating,
       duration: body.duration,
+      timeDuration: body.timeDuration,
+      highlights: body.highlights,
       images: body.images,
       location: body.location,
       destinationId: body.destinationId,

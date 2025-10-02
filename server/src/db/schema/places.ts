@@ -10,6 +10,8 @@ export const places = pgTable("places", {
   description: text("description").notNull(),
   rating: real("rating").notNull().default(0),
   duration: varchar("duration", { length: 100 }).notNull(),
+  timeDuration: varchar("time_duration", { length: 100 }).notNull(),
+  highlights: jsonb("highlights").$type<string[]>().notNull(),
   images: jsonb("images").$type<string[]>().notNull(),
   location: jsonb("location").$type<{ lat: number; lng: number }>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

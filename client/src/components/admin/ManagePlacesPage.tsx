@@ -43,6 +43,8 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
     description: '',
     rating: 4.5,
     duration: '',
+    timeDuration: '',
+    highlights: '',
     images: [] as string[],
     location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
     destinationId: destinationId || ''
@@ -84,6 +86,8 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         description: place.description,
         rating: place.rating,
         duration: place.duration,
+        timeDuration: place.timeDuration || '',
+        highlights: place.highlights ? place.highlights.join(', ') : '',
         images: place.images,
         location: place.location,
         destinationId: place.destinationId
@@ -97,6 +101,8 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         description: '',
         rating: 4.5,
         duration: '',
+        timeDuration: '',
+        highlights: '',
         images: [],
         location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
         destinationId: destinationId || ''
@@ -119,6 +125,16 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
       return;
     }
 
+    if (!formData.timeDuration.trim()) {
+      toast.error('Please enter time duration');
+      return;
+    }
+
+    if (!formData.highlights.trim()) {
+      toast.error('Please enter at least one highlight');
+      return;
+    }
+
     try {
       setSubmitting(true);
 
@@ -128,6 +144,8 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         description: formData.description,
         rating: Number(formData.rating),
         duration: formData.duration,
+        timeDuration: formData.timeDuration,
+        highlights: formData.highlights.split(',').map(h => h.trim()).filter(Boolean),
         images: formData.images,
         location: formData.location,
       };
@@ -397,6 +415,31 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Time Duration</label>
+                <Input
+                  placeholder="e.g., 2-3 hours to fully explore"
+                  value={formData.timeDuration}
+                  onChange={(e) => setFormData({ ...formData, timeDuration: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recommended time needed to explore this place
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Key Highlights</label>
+                <Textarea
+                  placeholder="e.g., Ancient frescoes, Lion's Gate, Summit views"
+                  value={formData.highlights}
+                  onChange={(e) => setFormData({ ...formData, highlights: e.target.value })}
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter highlights separated by commas
+                </p>
               </div>
 
               <div>

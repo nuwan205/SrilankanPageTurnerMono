@@ -36,6 +36,8 @@ interface Place {
   description: string;
   rating: number;
   duration: string;
+  timeDuration?: string;
+  highlights?: string[];
   images: string[];
   location: {
     lat: number;
@@ -394,6 +396,11 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
                         <span className="truncate">{place.duration}</span>
                       </div>
                     </div>
+                    {place.timeDuration && (
+                      <div className="mt-2 text-xs text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">
+                        ⏱ {place.timeDuration}
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 lg:mb-6 leading-relaxed line-clamp-4 sm:line-clamp-none">
@@ -401,17 +408,19 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
                   </p>
 
                   {/* Highlights */}
-                  <div className="mb-3 sm:mb-4 lg:mb-6">
-                    <h3 className="text-xs sm:text-sm font-medium text-foreground mb-2 sm:mb-3">Key Highlights</h3>
-                    <div className="space-y-1.5 sm:space-y-2">
-                      {destination.highlights.map((highlight) => (
-                        <div key={highlight} className="flex items-start gap-1.5 sm:gap-2">
-                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full flex-shrink-0 mt-1"></div>
-                          <span className="text-xs sm:text-sm text-muted-foreground leading-tight">{highlight}</span>
-                        </div>
-                      ))}
+                  {place.highlights && place.highlights.length > 0 && (
+                    <div className="mb-3 sm:mb-4 lg:mb-6">
+                      <h3 className="text-xs sm:text-sm font-medium text-foreground mb-2 sm:mb-3">Key Highlights</h3>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        {place.highlights.map((highlight) => (
+                          <div key={highlight} className="flex items-start gap-1.5 sm:gap-2">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full flex-shrink-0 mt-1"></div>
+                            <span className="text-xs sm:text-sm text-muted-foreground leading-tight">{highlight}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="space-y-2 sm:space-y-3">

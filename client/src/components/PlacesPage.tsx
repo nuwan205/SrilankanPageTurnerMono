@@ -11,6 +11,8 @@ interface Place {
   description: string;
   rating: number;
   duration: string;
+  timeDuration?: string;
+  highlights?: string[];
   images: string[];
   location: {
     lat: number;
@@ -112,6 +114,8 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
             description: place.description,
             rating: place.rating,
             duration: place.duration,
+            timeDuration: place.timeDuration,
+            highlights: place.highlights,
             images: place.images,
             location: place.location,
           }));
@@ -217,9 +221,36 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
                   <h3 className="text-xl font-medium text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
                     {place.name}
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">
                     {place.description}
                   </p>
+                  
+                  {/* Time Duration */}
+                  {place.timeDuration && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                      <Clock className="w-3 h-3" />
+                      <span>{place.timeDuration}</span>
+                    </div>
+                  )}
+
+                  {/* Highlights */}
+                  {place.highlights && place.highlights.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {place.highlights.slice(0, 3).map((highlight) => (
+                        <span
+                          key={highlight}
+                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                        >
+                          {highlight}
+                        </span>
+                      ))}
+                      {place.highlights.length > 3 && (
+                        <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-full">
+                          +{place.highlights.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
                   
                   {/* Call to Action */}
                   <div className="flex items-center justify-between">

@@ -117,6 +117,8 @@ export class PlaceService {
       description: place.description,
       rating: place.rating,
       duration: place.duration,
+      timeDuration: place.timeDuration,
+      highlights: place.highlights as string[],
       images: place.images as string[],
       location: place.location as { lat: number; lng: number },
       createdAt: place.createdAt.toISOString(),
