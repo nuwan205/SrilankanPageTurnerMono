@@ -13,8 +13,10 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
+import { Route as AdminPlacesRouteImport } from './routes/admin/places'
 import { Route as AdminDestinationsRouteImport } from './routes/admin/destinations'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminAdsRouteImport } from './routes/admin/ads'
 import { Route as AdminDestinationsIndexRouteImport } from './routes/admin/destinations.index'
 import { Route as AdminDestinationsDestinationIdPlacesRouteImport } from './routes/admin/destinations/$destinationId/places'
 
@@ -38,6 +40,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPlacesRoute = AdminPlacesRouteImport.update({
+  id: '/places',
+  path: '/places',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDestinationsRoute = AdminDestinationsRouteImport.update({
   id: '/destinations',
   path: '/destinations',
@@ -46,6 +53,11 @@ const AdminDestinationsRoute = AdminDestinationsRouteImport.update({
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdsRoute = AdminAdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDestinationsIndexRoute = AdminDestinationsIndexRouteImport.update({
@@ -63,8 +75,10 @@ const AdminDestinationsDestinationIdPlacesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/destinations': typeof AdminDestinationsRouteWithChildren
+  '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/destinations/': typeof AdminDestinationsIndexRoute
@@ -72,7 +86,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin': typeof AdminIndexRoute
   '/admin/destinations': typeof AdminDestinationsIndexRoute
@@ -82,8 +98,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/destinations': typeof AdminDestinationsRouteWithChildren
+  '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/destinations/': typeof AdminDestinationsIndexRoute
@@ -94,8 +112,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/admin/ads'
     | '/admin/categories'
     | '/admin/destinations'
+    | '/admin/places'
     | '/auth/signin'
     | '/admin/'
     | '/admin/destinations/'
@@ -103,7 +123,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin/ads'
     | '/admin/categories'
+    | '/admin/places'
     | '/auth/signin'
     | '/admin'
     | '/admin/destinations'
@@ -112,8 +134,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/admin/ads'
     | '/admin/categories'
     | '/admin/destinations'
+    | '/admin/places'
     | '/auth/signin'
     | '/admin/'
     | '/admin/destinations/'
@@ -156,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/places': {
+      id: '/admin/places'
+      path: '/places'
+      fullPath: '/admin/places'
+      preLoaderRoute: typeof AdminPlacesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/destinations': {
       id: '/admin/destinations'
       path: '/destinations'
@@ -168,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/ads': {
+      id: '/admin/ads'
+      path: '/ads'
+      fullPath: '/admin/ads'
+      preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/destinations/': {
@@ -202,14 +240,18 @@ const AdminDestinationsRouteWithChildren =
   AdminDestinationsRoute._addFileChildren(AdminDestinationsRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAdsRoute: typeof AdminAdsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDestinationsRoute: typeof AdminDestinationsRouteWithChildren
+  AdminPlacesRoute: typeof AdminPlacesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdsRoute: AdminAdsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDestinationsRoute: AdminDestinationsRouteWithChildren,
+  AdminPlacesRoute: AdminPlacesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

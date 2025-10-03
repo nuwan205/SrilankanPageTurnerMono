@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import BookLayout from './BookLayout';
+import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
+import BookLayout, { BookLayoutRef } from './BookLayout';
 import CoverPage from './CoverPage';
 import CategoryPage from './CategoryPage';
 import DestinationPage from './DestinationPage';
@@ -29,6 +30,8 @@ interface Place {
   rating: number;
   duration: string;
   image: string;
+  images: string[];
+  highlights: string[];
   location: {
     lat: number;
     lng: number;
@@ -51,11 +54,13 @@ const TourismBook: React.FC = () => {
   });
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const bookLayoutRef = useRef<BookLayoutRef>(null);
   const totalPages = 5; // Cover, Categories, Destinations, Places, Map
 
   const handleStartJourney = () => {
     setBookState(prev => ({ ...prev, currentPage: 'categories' }));
-    setCurrentPageIndex(1);
+    // Call the paginate function directly with direction 1 (forward)
+    bookLayoutRef.current?.paginate(1);
   };
 
   const handleCategorySelect = (categoryId: string) => {
@@ -91,7 +96,8 @@ const TourismBook: React.FC = () => {
       currentPage: 'categories',
       selectedCategory: null 
     }));
-    setCurrentPageIndex(1);
+    // Call the paginate function directly with direction -1 (backward)
+    bookLayoutRef.current?.paginate(-1);
   };
 
   const handleBackToDestinations = () => {
@@ -101,7 +107,8 @@ const TourismBook: React.FC = () => {
       selectedDestination: null,
       selectedPlace: null 
     }));
-    setCurrentPageIndex(2);
+    // Call the paginate function directly with direction -1 (backward)
+    bookLayoutRef.current?.paginate(-1);
   };
 
   const handleBackToPlaces = () => {
@@ -110,10 +117,53 @@ const TourismBook: React.FC = () => {
       currentPage: 'places',
       selectedPlace: null 
     }));
-    setCurrentPageIndex(3);
+    // Call the paginate function directly with direction -1 (backward)
+    bookLayoutRef.current?.paginate(-1);
   };
 
   const handlePageChange = (pageIndex: number) => {
+    // Validate navigation requirements and show gentle messages
+    if (pageIndex === 2 && !bookState.selectedCategory) {
+      toast.info("Please select a category to view destinations Page! 🗺️", {
+        duration: 4000,
+        style: {
+          background: '#ffffff',
+          color: '#1f2937',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        },
+        descriptionClassName: 'text-gray-700 font-medium',
+      });
+      return; // Don't navigate
+    }
+    
+    if (pageIndex === 3 && !bookState.selectedDestination) {
+      toast.info("Please select a destination to view places Page! 🏞️", {
+        duration: 4000,
+        style: {
+          background: '#ffffff',
+          color: '#1f2937',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        },
+        descriptionClassName: 'text-gray-700 font-medium',
+      });
+      return; // Don't navigate
+    }
+    
+    if (pageIndex === 4 && !bookState.selectedPlace) {
+      toast.info("Please choose a place to view the map Page! 📍", {
+        duration: 4000,
+        style: {
+          background: '#ffffff',
+          color: '#1f2937',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        },
+      });
+      return; // Don't navigate
+    }
+
     setCurrentPageIndex(pageIndex);
     
     switch (pageIndex) {
@@ -215,6 +265,7 @@ const TourismBook: React.FC = () => {
   return (
     <div className="md:desk-surface">
       <BookLayout
+        ref={bookLayoutRef}
         currentPage={currentPageIndex}
         totalPages={totalPages}
         onPageChange={handlePageChange}

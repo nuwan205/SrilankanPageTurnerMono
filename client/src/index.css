@@ -145,14 +145,17 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
   .book-container {
     @apply relative w-full mx-auto;
     max-width: min(100vw, 1200px);
+    width: 100%;
     perspective: 1200px;
     perspective-origin: center center;
     padding: 0;
     margin: 0 auto;
     overflow: hidden; /* Prevent horizontal overflow */
+    overflow-x: hidden !important; /* Force hide horizontal overflow */
     border-radius: 12px; /* Match the book pages border radius */
-    /* Remove fixed height - let it vary naturally with content */
-    min-height: 400px; /* Just a minimum to prevent collapse */
+    /* Fixed height to prevent resizing during page transitions */
+    height: 100vh;
+    height: 100dvh; /* Better mobile support */
     /* Enhanced realistic book shadows with left-side depth */
     filter: 
       /* Main book shadow on surface */
@@ -189,8 +192,9 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed; /* Keep background completely fixed */
-    min-height: 100vh;
-    /* Remove any height constraints to allow natural content flow */
+    height: 100vh;
+    height: 100dvh; /* Better mobile support */
+    overflow: hidden; /* Prevent scrolling at this level */
     position: relative; /* Ensure proper stacking context */
   }
 
@@ -208,9 +212,11 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
   .mobile-book {
     max-width: 100vw;
     width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* Better mobile support */
     padding: 0.5rem;
     perspective: 800px;
-    overflow-x: hidden;
+    overflow: hidden; /* Prevent all overflow */
     position: relative;
     touch-action: pan-y pinch-zoom; /* Allow vertical scrolling and pinch zoom only */
     border-radius: 8px; /* Smaller border radius for mobile to match mobile pages */
@@ -218,6 +224,12 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
     filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.12)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
     z-index: 1;
     contain: layout style paint; /* Improve performance and prevent overflow */
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Clean background for mobile book */
@@ -237,24 +249,42 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
   .book-page-container {
     @apply relative w-full;
     overflow: hidden; /* Ensure content doesn't overflow */
+    overflow-x: hidden !important; /* Force hide horizontal overflow */
     max-width: 100vw;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* Better mobile support */
     contain: layout style paint;
+    /* GPU acceleration to prevent flickering */
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .book-page {
     @apply relative w-full bg-gradient-to-br from-background to-card;
     @apply shadow-lg rounded-lg overflow-hidden;
-    min-height: 100vh;
-    min-height: 100dvh; /* Better mobile support */
+    height: 100vh;
+    height: 100dvh; /* Better mobile support */
+    width: 100%;
+    max-width: 100vw; /* Prevent horizontal overflow */
     transform-style: preserve-3d;
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     top: 0; /* Force top positioning */
     left: 0; /* Force left positioning */
     transform-origin: center center; /* Ensure transforms are centered */
     padding: 0;
     margin: 0;
-    max-width: 100%;
     box-sizing: border-box;
+    /* GPU acceleration to prevent flickering */
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     /* Enhanced book-like appearance */
     border: 2px solid hsl(var(--border));
     border-radius: 12px;
@@ -278,17 +308,18 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
     .book-container {
       padding: 0.25rem;
       max-width: 100vw;
-      overflow-x: hidden;
-      /* Remove fixed height - allow natural content sizing */
-      min-height: 300px; /* Just prevent collapse on mobile */
+      overflow: hidden; /* Prevent all overflow */
+      /* Fixed height for consistency */
+      height: 100vh;
+      height: 100dvh;
       /* Improve touch responsiveness */
       -webkit-tap-highlight-color: transparent;
       touch-action: pan-y; /* Allow vertical scroll only */
     }
 
     .book-page {
-      min-height: calc(100vh - 1rem);
-      min-height: calc(100dvh - 1rem);
+      height: 100vh;
+      height: 100dvh;
       @apply rounded-md shadow-md;
       margin: 0;
       width: 100%;
@@ -318,6 +349,32 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
     }
+  }
+
+  /* Hide scrollbar while maintaining scroll functionality */
+  .hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Prevent horizontal overflow during page transitions */
+  .book-page-container,
+  .book-page,
+  .book-container,
+  .mobile-book {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+  }
+
+  /* Ensure body and html don't allow horizontal scroll */
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    max-width: 100vw !important;
   }
 
   /* Cultural pattern - mobile optimized */

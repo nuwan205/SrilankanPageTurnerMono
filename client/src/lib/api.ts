@@ -15,6 +15,11 @@ import type {
   Place,
   PlacesResponse,
   PlaceResponse,
+  CreateAd,
+  UpdateAd,
+  Ad,
+  AdsResponse,
+  AdResponse,
   ImageResponse,
   ApiResponse 
 } from "../../../shared/src/types/admin";
@@ -242,6 +247,35 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  // Ad API methods
+  async getAds(): Promise<AdsResponse> {
+    return this.request<AdsResponse>("/api/ads");
+  }
+
+  async getAdById(id: string): Promise<AdResponse> {
+    return this.request<AdResponse>(`/api/ads/${id}`);
+  }
+
+  async createAd(data: CreateAd): Promise<AdResponse> {
+    return this.request<AdResponse>("/api/ads", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAd(id: string, data: UpdateAd): Promise<AdResponse> {
+    return this.request<AdResponse>(`/api/ads/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAd(id: string): Promise<ApiResponse> {
+    return this.request<ApiResponse>(`/api/ads/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 // Export singleton instance
@@ -264,6 +298,11 @@ export type {
   UpdatePlace,
   PlacesResponse,
   PlaceResponse,
+  Ad,
+  CreateAd,
+  UpdateAd,
+  AdsResponse,
+  AdResponse,
   ImageResponse,
   ApiResponse 
 };

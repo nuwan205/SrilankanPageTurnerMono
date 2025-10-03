@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Star, Clock, Camera, ArrowLeft, X, ChevronLeft, ChevronRight, Image as ImageIcon, BookOpen } from 'lucide-react';
+import { MapPin, Star, Clock, Camera, ArrowLeft, X, ChevronLeft, ChevronRight, Image as ImageIcon, BookOpen, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { apiClient } from '@/lib/api';
 import type { Destination as ApiDestination } from '@/lib/api';
 import { toast } from 'sonner';
@@ -197,6 +198,8 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryTitle, setCategoryTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [imageIndices, setImageIndices] = useState<{ [key: string]: number }>({});
 
   // Fetch destinations from API
   useEffect(() => {
@@ -225,6 +228,13 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
           }));
 
           setDestinations(mappedDestinations);
+          
+          // Initialize image indices for carousel
+          const initialIndices: { [key: string]: number } = {};
+          mappedDestinations.forEach(dest => {
+            initialIndices[dest.id] = 0;
+          });
+          setImageIndices(initialIndices);
         } else {
           // Fallback to dummy data if API fails
           setDestinations(destinationsByCategory[categoryId] || []);
@@ -255,6 +265,32 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
 
     loadDestinations();
   }, [categoryId]);
+
+  // Auto-play carousel effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setImageIndices(prev => {
+        const newIndices = { ...prev };
+        destinations.forEach(dest => {
+          if (dest.gallery.length > 1) {
+            newIndices[dest.id] = (prev[dest.id] + 1) % dest.gallery.length;
+          }
+        });
+        return newIndices;
+      });
+    }, 4000); // Change image every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [destinations]);
+
+  // Filter destinations based on search query
+  const filteredDestinations = destinations.filter(dest =>
+    dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dest.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dest.highlights?.some(highlight => 
+      highlight.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
 
   const openGallery = (e: React.MouseEvent, destination: Destination) => {
     e.stopPropagation();
@@ -311,9 +347,9 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-paper relative overflow-hidden">
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth' }}>
       {/* Cultural Pattern Background */}
-      <div className="cultural-pattern" />
+      <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       
       {/* Header */}
       <motion.div
@@ -332,79 +368,133 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
             Back to Categories
           </Button>
           
-          <h1 className="chapter-title mb-4">
-            {categoryTitle} Destinations
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Discover the most amazing {categoryTitle.toLowerCase()} experiences Sri Lanka has to offer
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="chapter-title mb-4">
+                {categoryTitle} Destinations
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl">
+                <span className="font-bold text-primary">Choose your destination</span> and discover the most amazing {categoryTitle.toLowerCase()} experiences Sri Lanka has to offer
+              </p>
+            </div>
+            
+            {/* Search Bar */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative w-full lg:w-80"
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Search destinations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 bg-white/95 backdrop-blur-sm border border-border/50 rounded-lg 
+                           focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200
+                           placeholder:text-muted-foreground text-sm"
+                />
+              </div>
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                  {filteredDestinations.length} result{filteredDestinations.length !== 1 ? 's' : ''}
+                </div>
+              )}
+            </motion.div>
+          </div>
         </div>
       </motion.div>
 
       {/* Destinations Grid */}
-      <div className="relative z-10 px-4 pb-20">
+      <div className="relative z-10 px-2 sm:px-4 pb-20">
         <div className="max-w-6xl mx-auto">
           {/* Loading Spinner */}
           {loading && <BookLoadingSpinner />}
           
           {/* Destinations Grid */}
-          {!loading && destinations.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {destinations.map((destination, index) => (
-              <motion.div
-                key={destination.id}
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-              >
-                <Card className="heritage-card overflow-hidden cursor-pointer group h-full"
-                      onClick={() => onDestinationSelect(destination)}>
-                  {/* Destination Image */}
-                  <div className="relative h-64 overflow-hidden">
-                    {destination.image ? (
-                      <img
-                        src={destination.image}
-                        alt={destination.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                        <Camera className="w-16 h-16 text-primary/40" />
+          {!loading && filteredDestinations.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 px-2 sm:px-0">
+              {filteredDestinations.map((destination, index) => {
+                const currentImageIndex = imageIndices[destination.id] || 0;
+                const currentImage = destination.gallery[currentImageIndex] || destination.image || '/src/assets/hero-sri-lanka.jpg';
+                
+                return (
+                <motion.div
+                  key={destination.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                >
+                  <Card className="heritage-card overflow-hidden cursor-pointer group h-full w-full max-w-full border-0 rounded-lg shadow-lg p-0"
+                        onClick={() => onDestinationSelect(destination)}>
+                    {/* Destination Image with Carousel - Full Width */}
+                    <div className="relative h-64 sm:h-72 lg:h-80 overflow-hidden w-full m-0 rounded-t-lg">
+                      {currentImage ? (
+                        <motion.img
+                          key={`${destination.id}-${currentImageIndex}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                          src={currentImage}
+                          alt={destination.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 block rounded-t-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center rounded-t-lg">
+                          <Camera className="w-16 h-16 text-primary/40" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      
+                      {/* Image Indicator Dots */}
+                      {destination.gallery.length > 1 && (
+                        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
+                          {destination.gallery.map((image, imgIndex) => (
+                            <div
+                              key={`${destination.id}-dot-${imgIndex}-${image}`}
+                              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                imgIndex === currentImageIndex 
+                                  ? 'bg-white w-4' 
+                                  : 'bg-white/60'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Rating Badge */}
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1.5 flex items-center gap-1 z-10">
+                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+                        <span className="text-xs font-medium">{destination.rating}</span>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    
-                    {/* Rating Badge */}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">{destination.rating}</span>
                     </div>
-                  </div>
 
                   {/* Content */}
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-xl font-medium text-foreground group-hover:text-primary transition-colors duration-300">
+                      <h3 className="text-xl font-medium text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2 flex-1">
                         {destination.name}
                       </h3>
-                      <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                      <div className="flex items-center gap-1 text-muted-foreground text-sm flex-shrink-0 ml-2">
                         <Clock className="w-4 h-4" />
                         {destination.duration}
                       </div>
                     </div>
                     
-                    <p className="text-muted-foreground mb-4 leading-relaxed">
+                    <p className="text-muted-foreground mb-4 leading-relaxed line-clamp-3">
                       {destination.description}
                     </p>
 
                     {/* Highlights */}
-                    <div className="mb-6">
+                    <div className="mb-4 sm:mb-6">
                       <h4 className="text-sm font-medium text-foreground mb-2">Highlights:</h4>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {destination.highlights.map((highlight) => (
                           <span 
                             key={highlight}
-                            className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
+                            className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full whitespace-nowrap"
                           >
                             {highlight}
                           </span>
@@ -413,11 +503,11 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
                     </div>
 
                     {/* Call to Action */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <Button 
                         size="sm"
-                        variant="outline"
-                        className="text-primary hover:text-primary hover:bg-primary/10"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 border-0 px-3 py-2 h-auto"
                         onClick={(e) => openGallery(e, destination)}
                       >
                         <ImageIcon className="w-4 h-4 mr-2" />
@@ -425,7 +515,7 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
                       </Button>
                       <Button 
                         size="sm"
-                        className="bg-gradient-saffron hover:shadow-cultural text-white"
+                        className="bg-gradient-saffron hover:shadow-cultural text-white flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDestinationSelect(destination);
@@ -437,8 +527,24 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
                   </div>
                 </Card>
               </motion.div>
-            ))}
+            );
+            })}
             </div>
+          )}
+
+          {/* No Destinations Message - Search Results */}
+          {!loading && filteredDestinations.length === 0 && destinations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center min-h-[400px]"
+            >
+              <Search className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Destinations Found</h3>
+              <p className="text-muted-foreground text-sm text-center">
+                No destinations match your search "{searchQuery}". Try a different keyword.
+              </p>
+            </motion.div>
           )}
 
           {/* Coming Soon Message */}
@@ -466,17 +572,6 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
         </div>
       </div>
 
-      {/* Side Ad */}
-      <motion.div
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        className="fixed top-1/2 right-4 transform -translate-y-1/2 w-24 h-64 bg-card/60 backdrop-blur-sm border border-primary/20 rounded-lg shadow-soft hidden xl:block"
-      >
-        <div className="flex items-center justify-center h-full text-muted-foreground text-xs text-center p-2">
-          Vertical Ad Space
-        </div>
-      </motion.div>
 
       {/* Gallery Modal - Using Portal to render at document root */}
       {selectedGallery && createPortal(

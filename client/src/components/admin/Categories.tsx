@@ -180,14 +180,20 @@ const AdminCategories: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">
+                  Description ({formData.description.length}/300)
+                </Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
+                  maxLength={300}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Keep it concise - maximum 300 characters
+                </p>
               </div>
               <ImageUpload
                 value={formData.imageUrls}

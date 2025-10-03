@@ -386,13 +386,19 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Description</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Description ({formData.description.length}/500)
+                </label>
                 <Textarea
                   placeholder="Describe the place..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
+                  maxLength={500}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Maximum 500 characters
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -23,6 +23,12 @@ export type {
   PlaceQuery,
   PlacesResponse,
   PlaceResponse,
+  Ad,
+  CreateAd,
+  UpdateAd,
+  AdQuery,
+  AdsResponse,
+  AdResponse,
   ImageUpload,
   ImageResponse
 } from "./admin";

@@ -236,14 +236,20 @@ const AdminDestinations: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">
+                    Description ({formData.description.length}/500)
+                  </Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
+                    maxLength={500}
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Maximum 500 characters
+                  </p>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">

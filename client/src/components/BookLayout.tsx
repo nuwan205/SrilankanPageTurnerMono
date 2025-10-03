@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,17 +9,30 @@ interface BookLayoutProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   showNavigation?: boolean;
+  forceDirection?: number; // Add this for custom direction override
 }
 
-const BookLayout: React.FC<BookLayoutProps> = ({
+export interface BookLayoutRef {
+  paginate: (direction: number) => void;
+}
+
+const BookLayout = forwardRef<BookLayoutRef, BookLayoutProps>(({
   children,
   currentPage,
   totalPages,
   onPageChange,
   showNavigation = true,
-}) => {
-  const [direction, setDirection] = useState(0);
+  forceDirection, // Add this
+}, ref) => {
+  const [direction, setDirection] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Use forced direction if provided
+  useEffect(() => {
+    if (forceDirection !== undefined) {
+      setDirection(forceDirection);
+    }
+  }, [forceDirection]);
 
   // Detect mobile device and viewport changes
   useEffect(() => {
@@ -74,6 +87,11 @@ const BookLayout: React.FC<BookLayoutProps> = ({
     }
   };
 
+  // Expose paginate function through ref
+  useImperativeHandle(ref, () => ({
+    paginate
+  }), [paginate]);
+
   const handleDragEnd = (_event: any, info: any) => {
     // Much stricter thresholds to prevent accidental swipes
     const swipeThreshold = isMobile ? 40 : 80;
@@ -126,61 +144,63 @@ const BookLayout: React.FC<BookLayoutProps> = ({
   };
 
   return (
-    <div className={`book-container ${isMobile ? 'mobile-book' : ''}`}>
-      {/* Simple Background */}
-      <div className="cultural-pattern" />
-      
-      {/* Page Container with mobile overflow protection */}
-      <div className="book-page-container">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentPage}
-            custom={direction}
-            variants={pageVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            drag="x" // Enable drag/swipe for both mobile and desktop
-            dragConstraints={isMobile ? { left: -2, right: 2 } : { left: -10, right: 10 }}
-            dragElastic={isMobile ? 0.005 : 0.05}
-            dragMomentum={false}
-            dragPropagation={false}
-            onDragEnd={handleDragEnd}
-            transition={{
-              duration: isMobile ? 0.4 : 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            }}
-            className="book-page"
-            style={{
-              transformStyle: 'preserve-3d',
-              position: 'relative',
-              top: 0,
-              left: 0,
-            }}
-          >
-            {/* Subtle page corner fold effect */}
-            <div 
-              className="absolute top-0 right-0 w-6 h-6 z-10 pointer-events-none"
-              style={{
-                background: 'linear-gradient(-45deg, transparent 45%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.05) 100%)',
-                clipPath: 'polygon(100% 0%, 0% 100%, 100% 100%)',
+    <>
+      <div className={`book-container ${isMobile ? 'mobile-book' : ''}`}>
+        {/* Simple Background */}
+        <div className="cultural-pattern" />
+        
+        {/* Page Container with mobile overflow protection */}
+        <div className="book-page-container">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentPage}
+              custom={direction}
+              variants={pageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              drag="x" // Enable drag/swipe for both mobile and desktop
+              dragConstraints={isMobile ? { left: -2, right: 2 } : { left: -10, right: 10 }}
+              dragElastic={isMobile ? 0.005 : 0.05}
+              dragMomentum={false}
+              dragPropagation={false}
+              onDragEnd={handleDragEnd}
+              transition={{
+                duration: isMobile ? 0.4 : 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
               }}
-            />
-            {children}
-          </motion.div>
-        </AnimatePresence>
+              className="book-page"
+              style={{
+                transformStyle: 'preserve-3d',
+                position: 'relative',
+                top: 0,
+                left: 0,
+              }}
+            >
+              {/* Subtle page corner fold effect */}
+              <div 
+                className="absolute top-0 right-0 w-6 h-6 z-10 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(-45deg, transparent 45%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.05) 100%)',
+                  clipPath: 'polygon(100% 0%, 0% 100%, 100% 100%)',
+                }}
+              />
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
-      {/* Mobile-optimized Navigation */}
+      {/* Fixed Bottom Navigation - Outside book container */}
       {showNavigation && (
-        <div className={`fixed ${isMobile ? 'bottom-4' : 'bottom-6'} left-1/2 transform -translate-x-1/2 z-50`}>
-          <div className={`flex items-center ${isMobile ? 'gap-2 px-4 py-2' : 'gap-3 px-6 py-3'} bg-card/90 backdrop-blur-sm rounded-full shadow-lg border border-primary/20`}>
+        <div className={`fixed ${isMobile ? 'bottom-4' : 'bottom-6'} left-1/2 transform -translate-x-1/2 z-[9999]`}>
+          <div className={`flex items-center ${isMobile ? 'gap-2 px-4 py-2' : 'gap-3 px-6 py-3'} bg-white/95 backdrop-blur-md rounded-full shadow-xl border border-primary/30 ring-1 ring-black/5`}>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => paginate(-1)}
               disabled={currentPage === 0}
-              className={`rounded-full hover:bg-primary/10 hover:text-primary ${isMobile ? 'h-8 w-8 p-0' : ''}`}
+              className={`rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-50 ${isMobile ? 'h-8 w-8 p-0' : ''}`}
             >
               <ChevronLeft className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
             </Button>
@@ -195,8 +215,8 @@ const BookLayout: React.FC<BookLayoutProps> = ({
                   }}
                   className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} rounded-full transition-all duration-300 ${
                     i === currentPage
-                      ? 'bg-primary scale-125'
-                      : 'bg-primary/30 hover:bg-primary/60'
+                      ? 'bg-primary scale-125 shadow-sm'
+                      : 'bg-primary/30 hover:bg-primary/60 hover:scale-110'
                   }`}
                 />
               ))}
@@ -207,7 +227,7 @@ const BookLayout: React.FC<BookLayoutProps> = ({
               size="sm"
               onClick={() => paginate(1)}
               disabled={currentPage === totalPages - 1}
-              className={`rounded-full hover:bg-primary/10 hover:text-primary ${isMobile ? 'h-8 w-8 p-0' : ''}`}
+              className={`rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-50 ${isMobile ? 'h-8 w-8 p-0' : ''}`}
             >
               <ChevronRight className={isMobile ? "w-3 h-3" : "w-4 h-4"} />
             </Button>
@@ -216,11 +236,13 @@ const BookLayout: React.FC<BookLayoutProps> = ({
       )}
 
       {/* Page Counter */}
-      <div className={`fixed ${isMobile ? 'bottom-2 right-3 text-xs px-2 py-1' : 'bottom-4 right-6 text-sm px-3 py-1'} text-muted-foreground bg-card/80 backdrop-blur-sm rounded-full border border-primary/10`}>
+      <div className={`fixed ${isMobile ? 'bottom-2 right-3 text-xs px-2 py-1' : 'bottom-4 right-6 text-sm px-3 py-1'} text-muted-foreground bg-card/80 backdrop-blur-sm rounded-full border border-primary/10 z-[9998]`}>
         {currentPage + 1} / {totalPages}
       </div>
-    </div>
+    </>
   );
-};
+});
+
+BookLayout.displayName = 'BookLayout';
 
 export default BookLayout;

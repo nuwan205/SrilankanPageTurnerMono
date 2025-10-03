@@ -3,6 +3,7 @@ import { imageRoutes } from "./images";
 import { categoryRoutes } from "./categories";
 import destinationRoutes from "./destinations";
 import { placeRoutes } from "./places";
+import adsRoutes from "./ads";
 
 const apiRoutes = new Hono();
 
@@ -17,5 +18,8 @@ apiRoutes.route("/destinations", destinationRoutes);
 
 // Mount place routes
 apiRoutes.route("/places", placeRoutes);
+
+// Mount ads routes
+apiRoutes.route("/ads", adsRoutes);
 
 export { apiRoutes };

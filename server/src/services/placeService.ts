@@ -1,5 +1,6 @@
 import { db } from "../config/drizzle";
 import { places } from "../db/schema/places";
+import { ads } from "../db/schema/ads";
 import { eq, desc, and } from "drizzle-orm";
 import type { 
   Place as SharedPlace, 
@@ -29,7 +30,7 @@ export class PlaceService {
   }
 
   /**
-   * Get places with optional filtering
+   * Get places with optional filtering, including their ads
    */
   async getPlaces(query: Partial<PlaceQuery> = {}): Promise<SharedPlace[]> {
     const { destinationId } = query;
@@ -43,27 +44,37 @@ export class PlaceService {
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Get all results
+    // Get all results with left join to ads
     const placesList = await db
-      .select()
+      .select({
+        place: places,
+        ad: ads,
+      })
       .from(places)
+      .leftJoin(ads, eq(places.id, ads.placeId))
       .where(whereClause)
       .orderBy(desc(places.createdAt));
 
-    return placesList.map(this.mapToSharedPlace);
+    return placesList.map(({ place, ad }) => this.mapToSharedPlace(place, ad));
   }
 
   /**
-   * Get a single place by ID
+   * Get a single place by ID, including its ad
    */
   async getPlaceById(id: string): Promise<SharedPlace | null> {
-    const [place] = await db
-      .select()
+    const result = await db
+      .select({
+        place: places,
+        ad: ads,
+      })
       .from(places)
+      .leftJoin(ads, eq(places.id, ads.placeId))
       .where(eq(places.id, id))
       .limit(1);
 
-    return place ? this.mapToSharedPlace(place) : null;
+    if (!result[0]) return null;
+
+    return this.mapToSharedPlace(result[0].place, result[0].ad);
   }
 
   /**
@@ -107,10 +118,10 @@ export class PlaceService {
   }
 
   /**
-   * Map database place to shared type
+   * Map database place to shared type, including ad if present
    */
-  private mapToSharedPlace(place: any): SharedPlace {
-    return {
+  private mapToSharedPlace(place: any, ad?: any): SharedPlace {
+    const mappedPlace: SharedPlace = {
       id: place.id,
       destinationId: place.destinationId,
       name: place.name,
@@ -124,6 +135,24 @@ export class PlaceService {
       createdAt: place.createdAt.toISOString(),
       updatedAt: place.updatedAt.toISOString(),
     };
+
+    // Add ad information if it exists
+    if (ad) {
+      (mappedPlace as any).ad = {
+        id: ad.id,
+        title: ad.title,
+        description: ad.description,
+        images: ad.images,
+        rating: ad.rating,
+        phone: ad.phone || undefined,
+        whatsapp: ad.whatsapp || undefined,
+        email: ad.email || undefined,
+        link: ad.link,
+        bookingLink: ad.bookingLink || undefined,
+      };
+    }
+
+    return mappedPlace;
   }
 }
 

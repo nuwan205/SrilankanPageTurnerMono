@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, FolderTree, MapPin, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderTree, MapPin, Menu, X, LogOut, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -59,6 +59,7 @@ function AdminLayout() {
 		{ name: 'Dashboard', href: '/admin/', icon: LayoutDashboard },
 		{ name: 'Categories', href: '/admin/categories', icon: FolderTree },
 		{ name: 'Destinations', href: '/admin/destinations', icon: MapPin },
+		{ name: 'Ads', href: '/admin/ads', icon: Megaphone },
 	];
 
 	const isActive = (href: string) => {

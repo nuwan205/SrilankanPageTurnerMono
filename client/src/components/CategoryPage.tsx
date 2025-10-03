@@ -193,9 +193,9 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-paper relative overflow-hidden">
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth' }}>
       {/* Cultural Pattern Background */}
-      <div className="cultural-pattern" />
+      <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       
       {/* Header */}
       <motion.div
@@ -208,7 +208,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
           Explore Sri Lanka
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-          Choose your adventure and discover the incredible diversity of the Pearl of the Indian Ocean
+          <span className="font-bold text-primary">Choose your adventure</span> and discover the incredible diversity of the Pearl of the Indian Ocean
         </p>
       </motion.div>
 
@@ -250,10 +250,10 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
 
                 {/* Content */}
                 <div className="p-6">
-                  <h3 className="text-xl font-medium text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="text-xl font-medium text-foreground mb-3 group-hover:text-primary transition-colors duration-300 line-clamp-2">
                     {category.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
                     {category.description}
                   </p>
                   
@@ -282,18 +282,6 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
           )}
         </div>
       </div>
-
-      {/* Ad Placeholder */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-        className="fixed bottom-24 right-8 w-64 h-20 bg-card/60 backdrop-blur-sm border border-primary/20 rounded-lg shadow-soft"
-      >
-        <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-          Advertisement Space
-        </div>
-      </motion.div>
 
       {/* Decorative Elements */}
       <div className="absolute top-20 right-20 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />

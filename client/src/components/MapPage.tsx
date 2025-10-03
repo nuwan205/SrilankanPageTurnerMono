@@ -54,6 +54,7 @@ interface Place {
     whatsapp?: string;
     email?: string;
     link: string;
+    bookingLink?: string;
   };
 }
 
@@ -67,6 +68,7 @@ interface Ad {
   whatsapp?: string;
   email?: string;
   link: string;
+  bookingLink?: string;
 }
 
 interface MapPageProps {
@@ -75,25 +77,8 @@ interface MapPageProps {
   onBack: () => void;
 }
 
-// Sample ad data - Replace with API call
-const sampleAd: Ad = {
-  id: '1',
-  title: 'Luxury Beach Resort & Spa',
-  description: 'Experience paradise at our 5-star beachfront resort with world-class amenities, pristine beaches, and exceptional service. Book now for exclusive discounts!',
-  images: [
-    '/src/assets/category-beaches.jpg',
-    '/src/assets/category-adventure.jpg',
-    '/src/assets/category-cultural.jpg'
-  ],
-  rating: 4.8,
-  phone: '+94 11 234 5678',
-  whatsapp: '+94 77 123 4567',
-  email: 'info@luxuryresort.lk',
-  link: 'https://example.com/resort'
-};
-
-// Enhanced Ad Component with Multiple Images
-const AdCard: React.FC<{ ad: Ad }> = ({ ad }) => {
+// Enhanced Ad/Place Component with Multiple Images
+const AdCard: React.FC<{ ad: Ad; isActualAd?: boolean }> = ({ ad, isActualAd = true }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -152,10 +137,12 @@ const AdCard: React.FC<{ ad: Ad }> = ({ ad }) => {
               </>
             )}
 
-            {/* Sponsored Badge */}
-            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-primary/90 text-white text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
-              Sponsored
-            </div>
+            {/* Sponsored Badge - only show for actual ads */}
+            {isActualAd && (
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-primary/90 text-white text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
+                Sponsored
+              </div>
+            )}
 
             {/* Image Counter */}
             {ad.images.length > 1 && (
@@ -169,20 +156,21 @@ const AdCard: React.FC<{ ad: Ad }> = ({ ad }) => {
         {/* Ad Content */}
         <div className="p-3 sm:p-4 lg:p-5">
           <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
-            <h3 className="text-base sm:text-lg lg:text-xl font-medium text-foreground flex-1 leading-tight">{ad.title}</h3>
+            <h3 className="text-base sm:text-lg lg:text-xl font-medium text-foreground flex-1 leading-tight line-clamp-2">{ad.title}</h3>
             <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-50 text-yellow-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs sm:text-sm flex-shrink-0">
               <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
               {ad.rating}
             </div>
           </div>
           
-          <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 leading-relaxed line-clamp-3">{ad.description}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 leading-relaxed line-clamp-4">{ad.description}</p>
           
-          {/* Contact Information - Professional Grid Layout */}
-          <div className="mb-3 sm:mb-4">
-            <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">Contact Information</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              {ad.phone && (
+          {/* Contact Information - Professional Grid Layout - Only show for actual ads */}
+          {isActualAd && (ad.phone || ad.whatsapp || ad.email || ad.link) && (
+            <div className="mb-3 sm:mb-4">
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">Contact Information</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                {ad.phone && (
                 <a 
                   href={`tel:${ad.phone}`}
                   className="group flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 bg-muted/30 hover:bg-muted/50 rounded-lg border border-border/50 hover:border-border transition-all"
@@ -245,8 +233,32 @@ const AdCard: React.FC<{ ad: Ad }> = ({ ad }) => {
                   </div>
                 </a>
               )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Booking.com Link - Full Width CTA - Only show for actual ads */}
+          {isActualAd && ad.bookingLink && (
+            <div className="mb-3 sm:mb-4">
+              <a 
+                href={ad.bookingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 rounded-lg border-2 border-primary/30 hover:border-primary/50 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm sm:text-base">B</span>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-primary mb-0.5">Book on Booking.com</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Best price guaranteed • Free cancellation</p>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-primary group-hover:translate-x-1 transition-transform flex-shrink-0" />
+              </a>
+            </div>
+          )}
 
           {/* Dots Indicator */}
           {ad.images.length > 1 && (
@@ -271,14 +283,23 @@ const AdCard: React.FC<{ ad: Ad }> = ({ ad }) => {
 const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
-  // Use place.ad if available, otherwise use sampleAd for demo
-  const adToDisplay = place.ad || sampleAd;
-  const hasAd = !!(place.ad || sampleAd); // Show ad if place has one OR use sampleAd for demo
+  // Check if place has an actual ad
+  const hasActualAd = !!place.ad;
+
+  // If place has ad, use it; otherwise create fallback from place data
+  const adToDisplay: Ad = place.ad || {
+    id: place.id,
+    title: place.name,
+    description: place.description,
+    images: place.images,
+    rating: place.rating,
+    link: `#${place.id}`, // Fallback link
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-paper relative">
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar pb-20 sm:pb-8 lg:pb-8" style={{ scrollBehavior: 'smooth' }}>
       {/* Cultural Pattern Background */}
-      <div className="cultural-pattern" />
+      <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       
       {/* Header */}
       <motion.div
@@ -300,22 +321,20 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
       </motion.div>
 
       {/* Main Content - Scrollable */}
-      <div className="relative z-10 px-3 sm:px-4 py-4 sm:py-6 lg:py-8">
+      <div className="relative z-10 px-3 sm:px-4 py-4 sm:py-6 lg:py-8 pb-20 sm:pb-8 lg:pb-8">
         <div className="max-w-7xl mx-auto">
-          {/* Conditional Layout: 2-column if ad exists, full-width if no ad */}
-          <div className={`grid grid-cols-1 ${hasAd ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-3 sm:gap-4 lg:gap-6`}>
+          {/* Always use 2-column layout with ad/place display */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             
-            {/* Ad Column - Large (2/3 width) */}
-            {hasAd && (
-              <motion.div
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="lg:col-span-2"
-              >
-                <AdCard ad={adToDisplay} />
-              </motion.div>
-            )}
+            {/* Ad/Place Column - Large (2/3 width) */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="lg:col-span-2"
+            >
+              <AdCard ad={adToDisplay} isActualAd={hasActualAd} />
+            </motion.div>
 
             {/* Sidebar Column - Small (1/3 width) or Full Width */}
             <motion.div
@@ -396,16 +415,7 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
                         <span className="truncate">{place.duration}</span>
                       </div>
                     </div>
-                    {place.timeDuration && (
-                      <div className="mt-2 text-xs text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">
-                        ⏱ {place.timeDuration}
-                      </div>
-                    )}
                   </div>
-
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 lg:mb-6 leading-relaxed line-clamp-4 sm:line-clamp-none">
-                    {place.description}
-                  </p>
 
                   {/* Highlights */}
                   {place.highlights && place.highlights.length > 0 && (
@@ -424,13 +434,17 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
 
                   {/* Action Buttons */}
                   <div className="space-y-2 sm:space-y-3">
-                    <Button className="w-full bg-gradient-saffron hover:shadow-cultural text-white text-xs sm:text-sm h-9 sm:h-10">
-                      Book Your Visit
-                    </Button>
-                    <Button variant="outline" className="w-full group text-xs sm:text-sm h-9 sm:h-10">
-                      Get Directions
-                      <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <Button variant="outline" className="w-full bg-gradient-saffron hover:shadow-cultural text-white text-xs sm:text-sm h-9 sm:h-10">
+                        Get Directions
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </a>
                   </div>
                 </Card>
               </div>

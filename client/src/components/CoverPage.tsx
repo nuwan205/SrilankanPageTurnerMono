@@ -26,7 +26,12 @@ const CoverPage: React.FC<CoverPageProps> = ({ onStartJourney }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-[99svh] md:h-screen overflow-hidden touch-none overscroll-none max-w-[100vw] top-0 left-0" style={{ transform: 'translateY(0px)' }}>
+    <div className="relative w-full h-screen overflow-hidden touch-none overscroll-none max-w-[100vw] top-0 left-0" style={{ 
+      transform: 'translateZ(0)',
+      willChange: 'transform',
+      backfaceVisibility: 'hidden',
+      WebkitBackfaceVisibility: 'hidden'
+    }}>
       {/* Hero Background */}
       <div className="absolute inset-0">
         <img
