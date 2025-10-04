@@ -40,6 +40,7 @@ export const CategorySchema = z.object({
   imageUrl: z.string().regex(/^https?:\/\/.+/, "Valid image URL is required"),
   icon: z.string().min(1, "Icon is required"),
   color: z.string().min(1, "Color is required"),
+  type: z.enum(["category", "location"]).default("category"),
   enabled: z.boolean().default(true),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -58,6 +59,7 @@ export const CategoryQuerySchema = z.object({
   limit: z.number().min(1).max(100).default(10),
   enabled: z.boolean().optional(),
   search: z.string().optional(),
+  type: z.enum(["category", "location"]).optional(),
 });
 
 export type Category = z.infer<typeof CategorySchema>;
@@ -103,10 +105,11 @@ export const PlaceSchema = z.object({
     lat: z.number(),
     lng: z.number(),
   }),
-  // Travel Tips
-  bestTime: z.string().min(1, "Best time is required"),
-  travelTime: z.string().min(1, "Travel time is required"),
-  idealFor: z.string().min(1, "Ideal for is required"),
+  type: z.enum(["wellknown", "hidden"]).default("wellknown"),
+  // Travel Tips (Optional)
+  bestTime: z.string().optional(),
+  travelTime: z.string().optional(),
+  idealFor: z.string().optional(),
   // Single ad for backward compatibility
   ad: z.object({
     id: z.string(),
@@ -149,6 +152,7 @@ export const UpdatePlaceSchema = CreatePlaceSchema.partial();
 
 export const PlaceQuerySchema = z.object({
   categoryId: z.string().optional(),
+  type: z.enum(["wellknown", "hidden"]).optional(),
 });
 
 export type Place = z.infer<typeof PlaceSchema>;
@@ -188,7 +192,7 @@ export const AdSchema = z.object({
   phone: z.string().max(50).optional(),
   whatsapp: z.string().max(50).optional(),
   email: z.string().email({ message: "Invalid email" }).max(255).optional(),
-  link: z.string().regex(/^https?:\/\/.+/, "Valid URL required"),
+  link: z.string().regex(/^https?:\/\/.+/, "Valid URL required").optional(),
   bookingLink: z.string().regex(/^https?:\/\/.+/, "Valid URL required").optional(),
   createdAt: z.string(),
   updatedAt: z.string(),

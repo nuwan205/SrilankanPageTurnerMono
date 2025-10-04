@@ -28,6 +28,7 @@ const AdminCategories: React.FC = () => {
     icon: '',
     imageUrls: [] as string[], // Changed to array for multiple images
     color: '',
+    type: 'category' as 'category' | 'location',
     enabled: true,
   });
 
@@ -58,6 +59,7 @@ const AdminCategories: React.FC = () => {
       icon: category.icon,
       imageUrls: [category.imageUrl], // Convert single URL to array
       color: category.color,
+      type: category.type || 'category',
       enabled: category.enabled,
     });
     setDialogOpen(true);
@@ -71,6 +73,7 @@ const AdminCategories: React.FC = () => {
       icon: 'FolderTree',
       imageUrls: [], // Empty array for new category
       color: 'from-primary/20 to-primary/5',
+      type: 'category',
       enabled: true,
     });
     setDialogOpen(true);
@@ -93,6 +96,7 @@ const AdminCategories: React.FC = () => {
         icon: formData.icon,
         imageUrl: formData.imageUrls[0], // Use first image as primary
         color: formData.color,
+        type: formData.type,
         enabled: formData.enabled,
       };
 
@@ -212,6 +216,22 @@ const AdminCategories: React.FC = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">Category Type</Label>
+                <select
+                  id="type"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'category' | 'location' })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  required
+                >
+                  <option value="category">Category</option>
+                  <option value="location">Location</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Category: Interest-based grouping (e.g., Wildlife, Cultural). Location: Geographic area (e.g., Kandy, Galle)
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -264,8 +284,17 @@ const AdminCategories: React.FC = () => {
             </div>
             <div className="p-4 space-y-3">
               <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-foreground">{category.title}</h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-foreground">{category.title}</h3>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      category.type === 'location' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {category.type === 'location' ? 'Location' : 'Category'}
+                    </span>
+                  </div>
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {category.description}
                   </p>

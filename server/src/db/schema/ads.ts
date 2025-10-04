@@ -14,7 +14,7 @@ export const ads = pgTable("ads", {
   phone: varchar("phone", { length: 50 }),
   whatsapp: varchar("whatsapp", { length: 50 }),
   email: varchar("email", { length: 255 }),
-  link: text("link").notNull(),
+  link: text("link"),
   bookingLink: text("booking_link"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

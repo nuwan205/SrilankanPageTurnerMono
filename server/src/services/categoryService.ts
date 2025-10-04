@@ -32,15 +32,19 @@ export class CategoryService {
   /**
    * Get all categories
    */
-  async getCategories(databaseUrl: string): Promise<{
+  async getCategories(databaseUrl: string, type?: "category" | "location"): Promise<{
     categories: SharedCategory[];
   }> {
     const db = getDb(databaseUrl);
-    // Get all categories without any filtering
-    const categoryList = await db
-      .select()
-      .from(categories)
-      .orderBy(desc(categories.createdAt));
+    
+    let query = db.select().from(categories);
+    
+    // Filter by type if provided
+    if (type) {
+      query = query.where(eq(categories.type, type)) as any;
+    }
+    
+    const categoryList = await query.orderBy(desc(categories.createdAt));
 
     return {
       categories: categoryList.map(this.mapToSharedCategory)
@@ -166,6 +170,7 @@ export class CategoryService {
       imageUrl: category.imageUrl,
       icon: category.icon,
       color: category.color,
+      type: category.type || "category",
       enabled: category.enabled,
       createdAt: category.createdAt.toISOString(),
       updatedAt: category.updatedAt.toISOString(),

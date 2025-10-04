@@ -70,6 +70,7 @@ class ApiClient {
     limit?: number;
     enabled?: boolean;
     search?: string;
+    type?: "category" | "location";
   }): Promise<CategoriesResponse> {
     const searchParams = new URLSearchParams();
     
@@ -78,6 +79,7 @@ class ApiClient {
       if (params.limit) searchParams.set("limit", params.limit.toString());
       if (params.enabled !== undefined) searchParams.set("enabled", params.enabled.toString());
       if (params.search) searchParams.set("search", params.search);
+      if (params.type) searchParams.set("type", params.type);
     }
 
     const query = searchParams.toString();
@@ -152,11 +154,13 @@ class ApiClient {
   // Place API methods
   async getPlaces(params?: {
     categoryId?: string;
+    type?: "wellknown" | "hidden";
   }): Promise<PlacesResponse> {
     const searchParams = new URLSearchParams();
     
     if (params) {
       if (params.categoryId) searchParams.set("categoryId", params.categoryId);
+      if (params.type) searchParams.set("type", params.type);
     }
 
     const query = searchParams.toString();

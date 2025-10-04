@@ -9,10 +9,11 @@ export const places = pgTable("places", {
   highlights: jsonb("highlights").$type<string[]>().notNull(),
   images: jsonb("images").$type<string[]>().notNull(),
   location: jsonb("location").$type<{ lat: number; lng: number }>().notNull(),
-  // Travel Tips
-  bestTime: varchar("best_time", { length: 200 }).notNull(),
-  travelTime: varchar("travel_time", { length: 200 }).notNull(),
-  idealFor: varchar("ideal_for", { length: 300 }).notNull(),
+  type: varchar("type", { length: 20 }).default("wellknown").notNull(),
+  // Travel Tips (Optional)
+  bestTime: varchar("best_time", { length: 200 }),
+  travelTime: varchar("travel_time", { length: 200 }),
+  idealFor: varchar("ideal_for", { length: 300 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -276,13 +276,9 @@ const MapPage: React.FC<MapPageProps> = ({ place, onBack }) => {
               className="lg:col-span-1"
             >
               <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-                {/* Sponsored Ads Carousel - Now at Top */}
-                {adsToShow.length > 0 ? (
+                {/* Sponsored Ads Carousel - Only show if ads exist */}
+                {adsToShow.length > 0 && (
                   <AdCarousel ads={adsToShow} autoPlayInterval={8000} />
-                ) : (
-                  <Card className="heritage-card p-3 text-center">
-                    <p className="text-xs text-muted-foreground">No sponsored ads</p>
-                  </Card>
                 )}
 
                 {/* Map with Key Highlights - Combined Card */}

@@ -15,6 +15,27 @@
       "when": 1759573066222,
       "tag": "0001_same_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759593719360,
+      "tag": "0002_simple_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1759594877053,
+      "tag": "0003_demonic_mandroid",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1759596762417,
+      "tag": "0004_cool_shatterstar",
+      "breakpoints": true
     }
   ]
 }

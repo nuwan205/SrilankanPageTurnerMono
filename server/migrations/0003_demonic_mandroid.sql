@@ -1,0 +1,1 @@
+ALTER TABLE "places" ADD COLUMN "type" varchar(20) DEFAULT 'wellknown' NOT NULL;

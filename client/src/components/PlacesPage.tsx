@@ -32,6 +32,7 @@ interface Place {
     lat: number;
     lng: number;
   };
+  type?: 'wellknown' | 'hidden';
   bestTime?: string;
   travelTime?: string;
   idealFor?: string;
@@ -107,6 +108,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
   const [searchQuery, setSearchQuery] = useState('');
   const [imageIndices, setImageIndices] = useState<{ [key: string]: number }>({});
   const [categoryTitle, setCategoryTitle] = useState('');
+  const [placeTypeFilter, setPlaceTypeFilter] = useState<'all' | 'wellknown' | 'hidden'>('all');
 
   // Fetch places from API
   useEffect(() => {
@@ -127,10 +129,11 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
         
         const response = await apiClient.getPlaces({
           categoryId: categoryId,
+          type: placeTypeFilter === 'all' ? undefined : placeTypeFilter,
         });
 
         if (response.success && response.data) {
-          // Map API places to local format
+          // Map API places to local format with type field
           const mappedPlaces: Place[] = response.data.places.map((place: ApiPlace) => ({
             id: place.id,
             name: place.name,
@@ -140,6 +143,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
             highlights: place.highlights,
             images: place.images,
             location: place.location,
+            type: place.type || 'wellknown',
             bestTime: place.bestTime,
             travelTime: place.travelTime,
             idealFor: place.idealFor,
@@ -165,7 +169,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
     };
 
     loadPlaces();
-  }, [categoryId]);
+  }, [categoryId, placeTypeFilter]);
 
   // Auto-play carousel effect
   useEffect(() => {
@@ -224,31 +228,67 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
               </p>
             </div>
             
-            {/* Search Bar */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative w-full lg:w-80"
-            >
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search places..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white/95 backdrop-blur-sm border border-border/50 rounded-lg 
-                           focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200
-                           placeholder:text-muted-foreground text-sm"
-                />
+            <div className="flex flex-col gap-4 w-full lg:w-auto">
+              {/* Place Type Filter Pills */}
+              <div className="flex justify-center lg:justify-end gap-2">
+                <button
+                  onClick={() => setPlaceTypeFilter('all')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    placeTypeFilter === 'all'
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground'
+                  }`}
+                >
+                  All Places
+                </button>
+                <button
+                  onClick={() => setPlaceTypeFilter('wellknown')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    placeTypeFilter === 'wellknown'
+                      ? 'bg-amber-100 text-amber-700 shadow-md'
+                      : 'bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground'
+                  }`}
+                >
+                  Well Known
+                </button>
+                <button
+                  onClick={() => setPlaceTypeFilter('hidden')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    placeTypeFilter === 'hidden'
+                      ? 'bg-emerald-100 text-emerald-700 shadow-md'
+                      : 'bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground'
+                  }`}
+                >
+                  Hidden Gems
+                </button>
               </div>
-              {searchQuery && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
-                  {filteredPlaces.length} result{filteredPlaces.length !== 1 ? 's' : ''}
+
+              {/* Search Bar */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="relative w-full lg:w-80"
+              >
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search places..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 bg-white/95 backdrop-blur-sm border border-border/50 rounded-lg 
+                             focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200
+                             placeholder:text-muted-foreground text-sm"
+                  />
                 </div>
-              )}
-            </motion.div>
+                {searchQuery && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                    {filteredPlaces.length} result{filteredPlaces.length !== 1 ? 's' : ''}
+                  </div>
+                )}
+              </motion.div>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -300,6 +340,17 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBa
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    
+                    {/* Place Type Badge - Top Left */}
+                    <div className="absolute top-3 left-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+                        place.type === 'hidden'
+                          ? 'bg-emerald-100/90 text-emerald-700'
+                          : 'bg-amber-100/90 text-amber-700'
+                      }`}>
+                        {place.type === 'hidden' ? '💎 Hidden Gem' : '⭐ Well Known'}
+                      </span>
+                    </div>
                     
                     {/* Image Indicator Dots */}
                     {place.images.length > 1 && (

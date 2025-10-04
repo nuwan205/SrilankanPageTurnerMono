@@ -14,7 +14,7 @@ interface Ad {
   phone?: string;
   whatsapp?: string;
   email?: string;
-  link: string;
+  link?: string;
   bookingLink?: string;
 }
 

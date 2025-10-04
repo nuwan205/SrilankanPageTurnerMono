@@ -32,6 +32,7 @@ placeRoutes.get("/", async (c) => {
     
     const placeQuery: PlaceQuery = {
       categoryId: query.categoryId,
+      type: query.type as "wellknown" | "hidden" | undefined,
     };
 
     const places = await placeService.getPlaces(c.env.DATABASE_URL, placeQuery);
@@ -107,11 +108,11 @@ placeRoutes.post("/", requireAuth, async (c) => {
     const body = await c.req.json();
 
     // Validate required fields
-    if (!body.name || !body.description || !body.categoryIds || !Array.isArray(body.categoryIds) || body.categoryIds.length === 0 || !body.location || !body.highlights || !body.bestTime || !body.travelTime || !body.idealFor) {
+    if (!body.name || !body.description || !body.categoryIds || !Array.isArray(body.categoryIds) || body.categoryIds.length === 0 || !body.location || !body.highlights) {
       return c.json({
         success: false,
         error: "Missing required fields",
-        message: "Please provide name, description, categoryIds (array with at least one category), location, highlights, bestTime, travelTime, and idealFor",
+        message: "Please provide name, description, categoryIds (array with at least one category), location, and highlights",
       } as ApiResponse, 400);
     }
 
@@ -124,9 +125,10 @@ placeRoutes.post("/", requireAuth, async (c) => {
       highlights: body.highlights || [],
       images: body.images || [],
       location: body.location,
-      bestTime: body.bestTime,
-      travelTime: body.travelTime,
-      idealFor: body.idealFor,
+      type: body.type || "wellknown",
+      bestTime: body.bestTime || undefined,
+      travelTime: body.travelTime || undefined,
+      idealFor: body.idealFor || undefined,
     };
 
     const newPlace = await placeService.createPlace(c.env.DATABASE_URL, placeData);
@@ -175,9 +177,10 @@ placeRoutes.put("/:id", requireAuth, async (c) => {
       images: body.images,
       location: body.location,
       categoryIds: body.categoryIds,
-      bestTime: body.bestTime,
-      travelTime: body.travelTime,
-      idealFor: body.idealFor,
+      type: body.type,
+      bestTime: body.bestTime || undefined,
+      travelTime: body.travelTime || undefined,
+      idealFor: body.idealFor || undefined,
     };
 
     const updatedPlace = await placeService.updatePlace(c.env.DATABASE_URL, id, placeData);

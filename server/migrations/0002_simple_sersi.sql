@@ -1,0 +1,1 @@
+ALTER TABLE "categories" ADD COLUMN "type" varchar(20) DEFAULT 'category' NOT NULL;

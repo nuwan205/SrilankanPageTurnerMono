@@ -21,12 +21,14 @@ const categoryRoutes = new Hono<{ Bindings: Bindings }>();
 
 /**
  * Get all categories
- * GET /api/categories
+ * GET /api/categories?type=category|location
  * Note: This endpoint is public and doesn't require authentication
  */
 categoryRoutes.get("/", async (c) => {
   try {
-    const result = await categoryService.getCategories(c.env.DATABASE_URL);
+    const type = c.req.query("type") as "category" | "location" | undefined;
+    
+    const result = await categoryService.getCategories(c.env.DATABASE_URL, type);
 
     const response: CategoriesResponse = {
       success: true,

@@ -51,6 +51,7 @@ const ManagePlacesPage: React.FC = () => {
     images: [] as string[],
     location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
     categoryIds: [] as string[],
+    type: 'wellknown' as 'wellknown' | 'hidden',
     // Travel Tips
     bestTime: '',
     travelTime: '',
@@ -104,6 +105,7 @@ const ManagePlacesPage: React.FC = () => {
         images: place.images,
         location: place.location,
         categoryIds: place.categoryIds || [],
+        type: place.type || 'wellknown',
         bestTime: place.bestTime || '',
         travelTime: place.travelTime || '',
         idealFor: place.idealFor || ''
@@ -121,6 +123,7 @@ const ManagePlacesPage: React.FC = () => {
         images: [],
         location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
         categoryIds: [],
+        type: 'wellknown',
         bestTime: '',
         travelTime: '',
         idealFor: ''
@@ -153,21 +156,6 @@ const ManagePlacesPage: React.FC = () => {
       return;
     }
 
-    if (!formData.bestTime.trim()) {
-      toast.error('Please enter best time to visit');
-      return;
-    }
-
-    if (!formData.travelTime.trim()) {
-      toast.error('Please enter travel time');
-      return;
-    }
-
-    if (!formData.idealFor.trim()) {
-      toast.error('Please enter ideal for information');
-      return;
-    }
-
     try {
       setSubmitting(true);
 
@@ -180,9 +168,10 @@ const ManagePlacesPage: React.FC = () => {
         highlights: formData.highlights.split(',').map(h => h.trim()).filter(Boolean),
         images: formData.images,
         location: formData.location,
-        bestTime: formData.bestTime,
-        travelTime: formData.travelTime,
-        idealFor: formData.idealFor,
+        type: formData.type,
+        bestTime: formData.bestTime.trim() || undefined,
+        travelTime: formData.travelTime.trim() || undefined,
+        idealFor: formData.idealFor.trim() || undefined,
       };
 
       if (editingPlace) {
@@ -488,7 +477,7 @@ const ManagePlacesPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Rating</label>
                   <Input
@@ -508,6 +497,17 @@ const ManagePlacesPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Place Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'wellknown' | 'hidden' })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="wellknown">Well Known</option>
+                    <option value="hidden">Hidden Gem</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -525,11 +525,11 @@ const ManagePlacesPage: React.FC = () => {
 
               {/* Travel Tips Section */}
               <div className="border-t pt-4 mt-4">
-                <h3 className="text-lg font-semibold mb-4">Travel Tips</h3>
+                <h3 className="text-lg font-semibold mb-4">Travel Tips (Optional)</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Best Time to Visit <span className="text-red-500">*</span>
+                      Best Time to Visit
                     </label>
                     <Input
                       placeholder="e.g., March–September (dry season)"
@@ -540,7 +540,7 @@ const ManagePlacesPage: React.FC = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Travel Time <span className="text-red-500">*</span>
+                      Travel Time
                     </label>
                     <Input
                       placeholder="e.g., 4–5 hours from Colombo"
@@ -551,7 +551,7 @@ const ManagePlacesPage: React.FC = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Ideal For <span className="text-red-500">*</span>
+                      Ideal For
                     </label>
                     <Input
                       placeholder="e.g., Eco-tourists, families, nature enthusiasts"

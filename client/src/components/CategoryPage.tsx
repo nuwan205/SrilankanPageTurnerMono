@@ -85,9 +85,10 @@ interface CategoryPageProps {
   onCategorySelect: (categoryId: string) => void;
 }
 
-const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
+const CategoryPage = ({ onCategorySelect }: CategoryPageProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoryType, setCategoryType] = useState<'category' | 'location'>('category');
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -96,7 +97,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
         
         // Try to fetch from API first
         try {
-          const response = await apiClient.getCategories();
+          const response = await apiClient.getCategories({ type: categoryType });
           const apiCategories = response.data?.categories || [];
           
           if (apiCategories.length > 0) {
@@ -129,7 +130,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
     };
 
     loadCategories();
-  }, []);
+  }, [categoryType]);
 
   return (
     <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth', touchAction: 'pan-y' }}>
@@ -150,6 +151,38 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
           <span className="font-bold text-primary">Choose your adventure</span> and discover the incredible diversity of the Pearl of the Indian Ocean
         </p>
       </motion.div>
+
+      {/* Category Type Toggle */}
+      <div className="relative z-10 px-4 pb-6">
+        <div className="max-w-6xl mx-auto flex justify-center">
+          <div className="inline-flex items-center p-1 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-border">
+            <button
+              onClick={() => setCategoryType('category')}
+              className={`
+                px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200
+                ${categoryType === 'category'
+                  ? 'bg-green-100 text-green-700 shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+                }
+              `}
+            >
+              Categories
+            </button>
+            <button
+              onClick={() => setCategoryType('location')}
+              className={`
+                px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200
+                ${categoryType === 'location'
+                  ? 'bg-blue-100 text-blue-700 shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+                }
+              `}
+            >
+              Locations
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Loading Spinner or Categories Grid */}
       <div className="relative z-10 px-4 pb-20">

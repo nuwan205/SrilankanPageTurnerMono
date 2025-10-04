@@ -52,7 +52,7 @@ export class PlaceService {
    */
   async getPlaces(databaseUrl: string, query: Partial<PlaceQuery> = {}): Promise<SharedPlace[]> {
     const db = getDb(databaseUrl);
-    const { categoryId } = query;
+    const { categoryId, type } = query;
 
     let placeIds: string[] | undefined;
 
@@ -72,7 +72,13 @@ export class PlaceService {
     }
 
     // Build WHERE conditions
-    const conditions = placeIds ? [inArray(places.id, placeIds)] : [];
+    const conditions = [];
+    if (placeIds) {
+      conditions.push(inArray(places.id, placeIds));
+    }
+    if (type) {
+      conditions.push(eq(places.type, type));
+    }
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Get all places
@@ -237,6 +243,7 @@ export class PlaceService {
       highlights: place.highlights as string[],
       images: place.images as string[],
       location: place.location as { lat: number; lng: number },
+      type: place.type || "wellknown",
       bestTime: place.bestTime,
       travelTime: place.travelTime,
       idealFor: place.idealFor,

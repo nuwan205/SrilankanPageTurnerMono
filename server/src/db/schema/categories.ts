@@ -7,6 +7,7 @@ export const categories = pgTable("categories", {
   imageUrl: text("image_url").notNull(),
   icon: varchar("icon", { length: 50 }).notNull(),
   color: varchar("color", { length: 100 }).notNull(),
+  type: varchar("type", { length: 20 }).default("category").notNull(),
   enabled: boolean("enabled").default(true).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

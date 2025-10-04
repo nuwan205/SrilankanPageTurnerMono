@@ -26,7 +26,7 @@ interface Ad {
   phone?: string;
   whatsapp?: string;
   email?: string;
-  link: string;
+  link?: string;
   bookingLink?: string;
   createdAt: string;
   updatedAt: string;
@@ -103,7 +103,7 @@ const ManageAdsPage: React.FC = () => {
         phone: ad.phone || '',
         whatsapp: ad.whatsapp || '',
         email: ad.email || '',
-        link: ad.link,
+        link: ad.link || '',
         bookingLink: ad.bookingLink || ''
       });
     } else {
@@ -157,11 +157,6 @@ const ManageAdsPage: React.FC = () => {
       return;
     }
 
-    if (!formData.link.trim()) {
-      toast.error('Please enter website link');
-      return;
-    }
-
     try {
       setSubmitting(true);
 
@@ -175,7 +170,7 @@ const ManageAdsPage: React.FC = () => {
         phone: formData.phone || undefined,
         whatsapp: formData.whatsapp || undefined,
         email: formData.email || undefined,
-        link: formData.link,
+        link: formData.link.trim() || undefined,
         bookingLink: formData.bookingLink || undefined
       };
 
@@ -629,11 +624,11 @@ const ManageAdsPage: React.FC = () => {
 
             {/* Links */}
             <div className="space-y-4 border-t pt-4">
-              <h3 className="text-lg font-medium">Links</h3>
+              <h3 className="text-lg font-medium">Links (Optional)</h3>
               
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Website Link <span className="text-red-500">*</span>
+                  Website Link
                 </label>
                 <Input
                   type="url"

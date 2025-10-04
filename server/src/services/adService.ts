@@ -23,7 +23,7 @@ const mapToSharedAd = (dbAd: typeof ads.$inferSelect, placeName?: string): Ad =>
     phone: dbAd.phone || undefined,
     whatsapp: dbAd.whatsapp || undefined,
     email: dbAd.email || undefined,
-    link: dbAd.link,
+    link: dbAd.link || undefined,
     bookingLink: dbAd.bookingLink || undefined,
     createdAt: dbAd.createdAt.toISOString(),
     updatedAt: dbAd.updatedAt.toISOString(),
