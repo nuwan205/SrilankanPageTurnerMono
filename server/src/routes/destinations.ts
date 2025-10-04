@@ -10,7 +10,15 @@ import type {
   DestinationQuery
 } from "../../../shared/src/types/admin";
 
-const destinationRoutes = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+};
+
+const destinationRoutes = new Hono<{ Bindings: Bindings }>();
 
 /**
  * Get all destinations with optional filtering
@@ -28,7 +36,7 @@ destinationRoutes.get("/", async (c) => {
       search: query.search,
     };
 
-    const result = await destinationService.getDestinations(destinationQuery);
+    const result = await destinationService.getDestinations(c.env.DATABASE_URL, destinationQuery);
 
     const response: DestinationsResponse = {
       success: true,
@@ -64,7 +72,7 @@ destinationRoutes.get("/:id", async (c) => {
       } as ApiResponse, 400);
     }
 
-    const destination = await destinationService.getDestinationById(id);
+    const destination = await destinationService.getDestinationById(c.env.DATABASE_URL, id);
 
     if (!destination) {
       return c.json({
@@ -107,7 +115,7 @@ destinationRoutes.get("/category/:categoryId/count", async (c) => {
       } as ApiResponse, 400);
     }
 
-    const count = await destinationService.getDestinationsCountByCategory(categoryId);
+    const count = await destinationService.getDestinationsCountByCategory(c.env.DATABASE_URL, categoryId);
 
     return c.json({
       success: true,
@@ -146,7 +154,7 @@ destinationRoutes.post("/", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const destination = await destinationService.createDestination(validatedData);
+    const destination = await destinationService.createDestination(c.env.DATABASE_URL, validatedData);
 
     const response: DestinationResponse = {
       success: true,
@@ -196,7 +204,7 @@ destinationRoutes.put("/:id", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const destination = await destinationService.updateDestination(id, validatedData);
+    const destination = await destinationService.updateDestination(c.env.DATABASE_URL, id, validatedData);
 
     if (!destination) {
       return c.json({
@@ -240,7 +248,7 @@ destinationRoutes.delete("/:id", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const deleted = await destinationService.deleteDestination(id);
+    const deleted = await destinationService.deleteDestination(c.env.DATABASE_URL, id);
 
     if (!deleted) {
       return c.json({
@@ -281,7 +289,7 @@ destinationRoutes.patch("/:id/toggle", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const destination = await destinationService.toggleDestinationEnabled(id);
+    const destination = await destinationService.toggleDestinationEnabled(c.env.DATABASE_URL, id);
 
     if (!destination) {
       return c.json({

@@ -256,11 +256,6 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
     height: 100dvh; /* Better mobile support */
     contain: layout style paint;
     /* GPU acceleration to prevent flickering */
-    will-change: transform;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
   }
 
   .book-page {
@@ -478,7 +473,7 @@ All colors MUST be HSL. Inspired by Sri Lankan heritage, nature, and culture.
   }
 
   .text-gradient-saffron {
-    background: var(--gradient-saffron);
+    background: var(--gradient-paper);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

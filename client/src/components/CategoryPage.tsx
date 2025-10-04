@@ -1,32 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  TreePine, 
-  Waves, 
-  Building2, 
-  Mountain, 
-  Zap, 
-  Music,
   ArrowRight,
-  FolderTree,
-  BookOpen
+  BookOpen,
+  FolderTree
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
-// Icon mapping for dynamic icons
-const iconMap: Record<string, React.ElementType> = {
-  TreePine,
-  Waves,
-  Building2,
-  Mountain,
-  Zap,
-  Music,
-  FolderTree,
-};
-
-// Helper function to get icon component
+// Helper function to dynamically get any Lucide icon component
 const getIconComponent = (iconName: string): React.ElementType => {
-  return iconMap[iconName] || FolderTree;
+  // Try to get the icon from lucide-react dynamically
+  const IconComponent = (LucideIcons as any)[iconName];
+  
+  // Return the icon if found, otherwise return default FolderTree icon
+  return IconComponent || FolderTree;
 };
 
 // Book reading spinner component
@@ -91,56 +79,7 @@ interface Category {
 }
 
 // Dummy categories data
-const dummyCategories: Category[] = [
-  {
-    id: 'wildlife',
-    title: 'Wildlife Safari',
-    description: 'Experience incredible wildlife encounters in pristine national parks. Spot leopards, elephants, and exotic birds in their natural habitat.',
-    icon: TreePine,
-    image: '/src/assets/category-wildlife.jpg',
-    color: 'from-emerald-900/60 to-transparent'
-  },
-  {
-    id: 'beaches',
-    title: 'Beach Paradise',
-    description: 'Relax on golden sandy beaches with crystal-clear waters. Perfect for surfing, snorkeling, and unforgettable sunsets.',
-    icon: Waves,
-    image: '/src/assets/category-beaches.jpg',
-    color: 'from-blue-900/60 to-transparent'
-  },
-  {
-    id: 'heritage',
-    title: 'Ancient Heritage',
-    description: 'Explore UNESCO World Heritage Sites with ancient ruins, rock fortresses, and sacred temples from Sri Lanka\'s rich history.',
-    icon: Building2,
-    image: '/src/assets/category-heritage.jpg',
-    color: 'from-amber-900/60 to-transparent'
-  },
-  {
-    id: 'cultural',
-    title: 'Cultural Wonders',
-    description: 'Immerse yourself in vibrant cultural traditions, colorful festivals, and sacred Buddhist temples.',
-    icon: Music,
-    image: '/src/assets/category-cultural.jpg',
-    color: 'from-purple-900/60 to-transparent'
-  },
-  {
-    id: 'adventure',
-    title: 'Adventure Trails',
-    description: 'Embark on thrilling adventures with trekking, hiking, and exploring scenic mountain trails and waterfalls.',
-    icon: Mountain,
-    image: '/src/assets/category-adventure.jpg',
-    color: 'from-orange-900/60 to-transparent'
-  },
-  {
-    id: 'hill-country',
-    title: 'Hill Country',
-    description: 'Discover lush tea plantations, cool mountain air, and breathtaking views in Sri Lanka\'s scenic highlands.',
-    icon: Mountain,
-    image: '/src/assets/category-hill-country.jpg',
-    color: 'from-green-900/60 to-transparent'
-  }
-];
+const dummyCategories: Category[] = [];
 
 interface CategoryPageProps {
   onCategorySelect: (categoryId: string) => void;
@@ -193,7 +132,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
   }, []);
 
   return (
-    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth' }}>
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth', touchAction: 'pan-y' }}>
       {/* Cultural Pattern Background */}
       <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       

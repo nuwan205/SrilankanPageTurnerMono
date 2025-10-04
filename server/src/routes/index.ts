@@ -4,8 +4,9 @@ import { categoryRoutes } from "./categories";
 import destinationRoutes from "./destinations";
 import { placeRoutes } from "./places";
 import adsRoutes from "./ads";
+import type { Bindings } from "../types";
 
-const apiRoutes = new Hono();
+const apiRoutes = new Hono<{ Bindings: Bindings }>();
 
 // Mount image routes
 apiRoutes.route("/images", imageRoutes);

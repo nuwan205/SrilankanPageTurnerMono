@@ -26,7 +26,7 @@ const CoverPage: React.FC<CoverPageProps> = ({ onStartJourney }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden touch-none overscroll-none max-w-[100vw] top-0 left-0" style={{ 
+    <div className="relative w-full h-[99svh] overflow-hidden touch-none overscroll-none max-w-[100vw] top-0 left-0" style={{ 
       transform: 'translateZ(0)',
       willChange: 'transform',
       backfaceVisibility: 'hidden',
@@ -152,7 +152,7 @@ const CoverPage: React.FC<CoverPageProps> = ({ onStartJourney }) => {
             repeatDelay: 1, // Reduced from 4 to 2 seconds
             ease: "easeInOut"
           }}
-          className="absolute bottom-12 md:bottom-20 right-4 md:right-16 flex items-center gap-3 text-white/80"
+          className="absolute bottom-20 md:bottom-20 right-4 md:right-16 flex items-center gap-3 text-white/80"
         >
           <motion.div
             animate={{ x: [0, 12, 0] }}
@@ -164,8 +164,8 @@ const CoverPage: React.FC<CoverPageProps> = ({ onStartJourney }) => {
             }}
             className="flex items-center gap-2"
           >
-            <span className="text-lg md:text-xl font-light">Swipe to explore</span>
-            <ChevronRight className="w-6 h-6 md:w-7 md:h-7" />
+            <span className="text-base md:text-xl font-light">Swipe to explore</span>
+            <ChevronRight className="w-5 h-5 md:w-7 md:h-7" />
           </motion.div>
         </motion.div>
 

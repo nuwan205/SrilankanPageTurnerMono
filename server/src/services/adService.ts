@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { getDb } from "../config/drizzle";
 import { ads } from "../db/schema/ads";
 import { places } from "../db/schema/places";
 import { eq } from "drizzle-orm";
@@ -31,7 +31,8 @@ const mapToSharedAd = (dbAd: typeof ads.$inferSelect, placeName?: string): Ad =>
 
 export class AdService {
   // Get all ads
-  async getAllAds(): Promise<Ad[]> {
+  async getAllAds(databaseUrl: string): Promise<Ad[]> {
+    const db = getDb(databaseUrl);
     const allAds = await db
       .select({
         ad: ads,
@@ -45,7 +46,8 @@ export class AdService {
   }
 
   // Get ad by ID
-  async getAdById(id: string): Promise<Ad | null> {
+  async getAdById(databaseUrl: string, id: string): Promise<Ad | null> {
+    const db = getDb(databaseUrl);
     const result = await db
       .select({
         ad: ads,
@@ -64,7 +66,8 @@ export class AdService {
   }
 
   // Get ads by place ID
-  async getAdsByPlaceId(placeId: string): Promise<Ad[]> {
+  async getAdsByPlaceId(databaseUrl: string, placeId: string): Promise<Ad[]> {
+    const db = getDb(databaseUrl);
     const placeAds = await db
       .select({
         ad: ads,
@@ -79,7 +82,8 @@ export class AdService {
   }
 
   // Create new ad
-  async createAd(data: CreateAd): Promise<Ad> {
+  async createAd(databaseUrl: string, data: CreateAd): Promise<Ad> {
+    const db = getDb(databaseUrl);
     const id = nanoid();
     const now = new Date();
 
@@ -117,7 +121,8 @@ export class AdService {
   }
 
   // Update ad
-  async updateAd(id: string, data: UpdateAd): Promise<Ad | null> {
+  async updateAd(databaseUrl: string, id: string, data: UpdateAd): Promise<Ad | null> {
+    const db = getDb(databaseUrl);
     const now = new Date();
 
     const [updatedAd] = await db
@@ -144,19 +149,19 @@ export class AdService {
   }
 
   // Delete ad
-  async deleteAd(id: string): Promise<boolean> {
+  async deleteAd(databaseUrl: string, id: string): Promise<boolean> {
+    const db = getDb(databaseUrl);
     const result = await db.delete(ads).where(eq(ads.id, id)).returning();
     return result.length > 0;
   }
 
   // Check if place already has an ad
-  async checkPlaceHasAd(placeId: string, excludeAdId?: string): Promise<boolean> {
-    const query = db
+  async checkPlaceHasAd(databaseUrl: string, placeId: string, excludeAdId?: string): Promise<boolean> {
+    const db = getDb(databaseUrl);
+    const result = await db
       .select({ id: ads.id })
       .from(ads)
       .where(eq(ads.placeId, placeId));
-
-    const result = await query;
 
     if (excludeAdId) {
       return result.some(ad => ad.id !== excludeAdId);

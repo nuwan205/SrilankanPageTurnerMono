@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "sri-lankan-page-tuner", // Name of your project
-	"main": "./server/dist/index.js", // Path to worker
+	"main": "./server/dist/server/src/index.js", // Path to worker
 	"compatibility_date": "2025-05-25",
 	"workers_dev": true, // Enable workers.dev subdomain
 	"assets": {

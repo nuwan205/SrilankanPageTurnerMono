@@ -297,7 +297,7 @@ const MapPage: React.FC<MapPageProps> = ({ destination, place, onBack }) => {
   };
 
   return (
-    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar pb-20 sm:pb-8 lg:pb-8" style={{ scrollBehavior: 'smooth' }}>
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar pb-20 sm:pb-8 lg:pb-8" style={{ scrollBehavior: 'smooth', touchAction: 'pan-y' }}>
       {/* Cultural Pattern Background */}
       <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       

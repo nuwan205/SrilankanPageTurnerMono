@@ -1,4 +1,4 @@
-import { db } from "../config/drizzle";
+import { getDb } from "../config/drizzle";
 import { places } from "../db/schema/places";
 import { ads } from "../db/schema/ads";
 import { eq, desc, and } from "drizzle-orm";
@@ -13,9 +13,11 @@ export class PlaceService {
   /**
    * Create a new place
    */
-  async createPlace(data: CreatePlace): Promise<SharedPlace> {
+
+  async createPlace(databaseUrl: string, data: CreatePlace): Promise<SharedPlace> {
+    const db = getDb(databaseUrl);
     const id = `place-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     const [place] = await db
       .insert(places)
       .values({
@@ -32,7 +34,8 @@ export class PlaceService {
   /**
    * Get places with optional filtering, including their ads
    */
-  async getPlaces(query: Partial<PlaceQuery> = {}): Promise<SharedPlace[]> {
+  async getPlaces(databaseUrl: string, query: Partial<PlaceQuery> = {}): Promise<SharedPlace[]> {
+    const db = getDb(databaseUrl);
     const { destinationId } = query;
 
     // Build WHERE conditions
@@ -61,7 +64,8 @@ export class PlaceService {
   /**
    * Get a single place by ID, including its ad
    */
-  async getPlaceById(id: string): Promise<SharedPlace | null> {
+  async getPlaceById(databaseUrl: string, id: string): Promise<SharedPlace | null> {
+    const db = getDb(databaseUrl);
     const result = await db
       .select({
         place: places,
@@ -80,7 +84,8 @@ export class PlaceService {
   /**
    * Update a place
    */
-  async updatePlace(id: string, data: UpdatePlace): Promise<SharedPlace | null> {
+  async updatePlace(databaseUrl: string, id: string, data: UpdatePlace): Promise<SharedPlace | null> {
+    const db = getDb(databaseUrl);
     const [place] = await db
       .update(places)
       .set({
@@ -96,7 +101,8 @@ export class PlaceService {
   /**
    * Delete a place
    */
-  async deletePlace(id: string): Promise<boolean> {
+  async deletePlace(databaseUrl: string, id: string): Promise<boolean> {
+    const db = getDb(databaseUrl);
     const result = await db
       .delete(places)
       .where(eq(places.id, id))
@@ -108,7 +114,8 @@ export class PlaceService {
   /**
    * Get places count for a destination
    */
-  async getPlacesCountByDestination(destinationId: string): Promise<number> {
+  async getPlacesCountByDestination(databaseUrl: string, destinationId: string): Promise<number> {
+    const db = getDb(databaseUrl);
     const result = await db
       .select()
       .from(places)

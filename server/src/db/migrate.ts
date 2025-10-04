@@ -2,10 +2,14 @@ import { migrate } from 'drizzle-orm/neon-http/migrator';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema'; // Import your schemas
-import { config } from '../config'; // Import your application configuration
+import { getConfig } from '../config'; // Import your application configuration
+
 
 async function runMigrations() {
-  if (!config.databaseUrl) {
+
+  const config = getConfig();
+
+  if (!config.DATABASE_URL) {
     console.error('DATABASE_URL is not set in environment variables. Please check your .env file.');
     process.exit(1);
   }
@@ -13,7 +17,7 @@ async function runMigrations() {
   // Establish a new Drizzle instance specifically for migrations
   // It's good practice to ensure this is separate from your main app's 'db' instance
   // if you might have different configurations or connection pooling for migrations.
-  const sql = neon(config.databaseUrl);
+  const sql = neon(config.DATABASE_URL);
   const dbForMigrations = drizzle(sql, { schema });
 
   try {

@@ -1,7 +1,7 @@
-import { db } from "../config/drizzle";
+import { getDb } from "../config/drizzle";
 import { destinations } from "../db/schema/destinations";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { imageService } from "./imageService";
+import { ImageService } from "./imageService";
 import type { 
   Destination as SharedDestination, 
   CreateDestination, 
@@ -13,7 +13,9 @@ export class DestinationService {
   /**
    * Create a new destination
    */
-  async createDestination(data: CreateDestination): Promise<SharedDestination> {
+  
+  async createDestination(databaseUrl: string, data: CreateDestination): Promise<SharedDestination> {
+    const db = getDb(databaseUrl);
     const id = `destination-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     const [destination] = await db
@@ -32,9 +34,10 @@ export class DestinationService {
   /**
    * Get destinations with optional filtering
    */
-  async getDestinations(query: Partial<DestinationQuery> = {}): Promise<{
+  async getDestinations(databaseUrl: string, query: Partial<DestinationQuery> = {}): Promise<{
     destinations: SharedDestination[];
   }> {
+    const db = getDb(databaseUrl);
     const { categoryId, enabled, search } = query;
 
     // Build WHERE conditions
@@ -72,7 +75,8 @@ export class DestinationService {
   /**
    * Get a single destination by ID
    */
-  async getDestinationById(id: string): Promise<SharedDestination | null> {
+  async getDestinationById(databaseUrl: string, id: string): Promise<SharedDestination | null> {
+    const db = getDb(databaseUrl);
     const [destination] = await db
       .select()
       .from(destinations)
@@ -85,7 +89,8 @@ export class DestinationService {
   /**
    * Update a destination
    */
-  async updateDestination(id: string, data: UpdateDestination): Promise<SharedDestination | null> {
+  async updateDestination(databaseUrl: string, id: string, data: UpdateDestination): Promise<SharedDestination | null> {
+    const db = getDb(databaseUrl);
     const [destination] = await db
       .update(destinations)
       .set({
@@ -101,7 +106,8 @@ export class DestinationService {
   /**
    * Delete a destination
    */
-  async deleteDestination(id: string): Promise<boolean> {
+  async deleteDestination(databaseUrl: string, id: string, imageService?: ImageService): Promise<boolean> {
+    const db = getDb(databaseUrl);
     // First, get the destination to retrieve its images
     const [destination] = await db
       .select()
@@ -120,7 +126,7 @@ export class DestinationService {
       .returning({ id: destinations.id });
 
     // If deletion successful, delete images from R2 storage
-    if (result.length > 0 && destination.images && Array.isArray(destination.images)) {
+    if (result.length > 0 && destination.images && Array.isArray(destination.images) && imageService) {
       for (const imageUrl of destination.images) {
         try {
           const imageKey = this.extractImageKey(imageUrl);
@@ -139,7 +145,8 @@ export class DestinationService {
   /**
    * Toggle destination enabled status
    */
-  async toggleDestinationEnabled(id: string): Promise<SharedDestination | null> {
+  async toggleDestinationEnabled(databaseUrl: string, id: string): Promise<SharedDestination | null> {
+    const db = getDb(databaseUrl);
     const [destination] = await db
       .select()
       .from(destinations)
@@ -165,7 +172,8 @@ export class DestinationService {
   /**
    * Get destinations count by category
    */
-  async getDestinationsCountByCategory(categoryId: string): Promise<number> {
+  async getDestinationsCountByCategory(databaseUrl: string, categoryId: string): Promise<number> {
+    const db = getDb(databaseUrl);
     const countResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(destinations)

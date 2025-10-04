@@ -64,6 +64,7 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
   const loadPlaces = async () => {
     try {
       setLoading(true);
+      console.log(loading)
       const response = await apiClient.getPlaces({
         destinationId: destinationId,
       });

@@ -3,12 +3,20 @@ import { adService } from "../services/adService";
 import { validateCreateAd, validateUpdateAd } from "../../../shared/src/types/admin";
 import { ZodError } from "zod";
 
-const ads = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+};
+
+const ads = new Hono<{ Bindings: Bindings }>();
 
 // GET /api/ads - Get all ads
 ads.get("/", async (c) => {
   try {
-    const allAds = await adService.getAllAds();
+    const allAds = await adService.getAllAds(c.env.DATABASE_URL);
 
     return c.json({
       success: true,
@@ -30,7 +38,7 @@ ads.get("/", async (c) => {
 ads.get("/:id", async (c) => {
   try {
     const id = c.req.param("id");
-    const ad = await adService.getAdById(id);
+    const ad = await adService.getAdById(c.env.DATABASE_URL, id);
 
     if (!ad) {
       return c.json(
@@ -65,7 +73,7 @@ ads.post("/", async (c) => {
     const validatedData = validateCreateAd(body);
 
     // Check if place already has an ad
-    const hasAd = await adService.checkPlaceHasAd(validatedData.placeId);
+    const hasAd = await adService.checkPlaceHasAd(c.env.DATABASE_URL, validatedData.placeId);
     if (hasAd) {
       return c.json(
         {
@@ -76,7 +84,7 @@ ads.post("/", async (c) => {
       );
     }
 
-    const newAd = await adService.createAd(validatedData);
+    const newAd = await adService.createAd(c.env.DATABASE_URL, validatedData);
 
     return c.json(
       {
@@ -119,7 +127,7 @@ ads.put("/:id", async (c) => {
 
     // If updating placeId, check if the new place already has an ad
     if (validatedData.placeId) {
-      const hasAd = await adService.checkPlaceHasAd(validatedData.placeId, id);
+      const hasAd = await adService.checkPlaceHasAd(c.env.DATABASE_URL, validatedData.placeId, id);
       if (hasAd) {
         return c.json(
           {
@@ -131,7 +139,7 @@ ads.put("/:id", async (c) => {
       }
     }
 
-    const updatedAd = await adService.updateAd(id, validatedData);
+    const updatedAd = await adService.updateAd(c.env.DATABASE_URL, id, validatedData);
 
     if (!updatedAd) {
       return c.json(
@@ -176,7 +184,7 @@ ads.put("/:id", async (c) => {
 ads.delete("/:id", async (c) => {
   try {
     const id = c.req.param("id");
-    const deleted = await adService.deleteAd(id);
+    const deleted = await adService.deleteAd(c.env.DATABASE_URL, id);
 
     if (!deleted) {
       return c.json(

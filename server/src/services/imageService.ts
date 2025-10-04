@@ -6,23 +6,25 @@ interface R2UploadResult {
   lastModified: string;
 }
 
+interface R2Config {
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+}
+
 export class ImageService {
-  private readonly accountId: string;
-  private readonly apiToken: string;
-  private readonly bucketName: string;
-  private readonly publicBucketUrl: string;
-  private readonly baseUrl: string;
+  private readonly config: R2Config;
 
-  constructor() {
-    this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID!;
-    this.apiToken = process.env.CLOUDFLARE_TOKEN!;
-    this.bucketName = process.env.BUCKET_NAME!;
-    this.publicBucketUrl = process.env.PUBLIC_BUCKET_URL!;
-    this.baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}/r2/buckets/${this.bucketName}`;
+  constructor(config: R2Config) {
+    this.config = config;
+  }
 
-    if (!this.accountId || !this.apiToken || !this.bucketName || !this.publicBucketUrl) {
-      throw new Error("Cloudflare R2 credentials not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_TOKEN, BUCKET_NAME, and PUBLIC_BUCKET_URL environment variables.");
-    }
+  /**
+   * Factory method to create ImageService with environment variables
+   */
+  static create(env: R2Config): ImageService {
+    return new ImageService(env);
   }
 
   private async handleApiResponse<T>(response: Response): Promise<T> {
@@ -47,7 +49,7 @@ export class ImageService {
   }
 
   private buildImageVariants(key: string): Record<string, string> {
-    const baseUrl = `${this.publicBucketUrl}/${key}`;
+    const baseUrl = `${this.config.PUBLIC_BUCKET_URL}/${key}`;
     
     return {
       thumbnail: baseUrl, // R2 doesn't have built-in variants, you'd need to implement image processing
@@ -97,10 +99,11 @@ export class ImageService {
 
       const key = this.generateImageKey(filename);
 
-      const response = await fetch(`${this.baseUrl}/objects/${key}`, {
+      const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.config.CLOUDFLARE_ACCOUNT_ID}/r2/buckets/${this.config.BUCKET_NAME}`;
+      const response = await fetch(`${baseUrl}/objects/${key}`, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${this.apiToken}`,
+          "Authorization": `Bearer ${this.config.CLOUDFLARE_TOKEN}`,
           "Content-Type": contentType,
           "Content-Length": size.toString(),
         },
@@ -112,7 +115,7 @@ export class ImageService {
         throw new Error(`R2 upload failed: ${response.status} - ${errorText}`);
       }
 
-      const publicUrl = `${this.publicBucketUrl}/${key}`;
+      const publicUrl = `${this.config.PUBLIC_BUCKET_URL}/${key}`;
       const variants = this.buildImageVariants(key);
 
       return {
@@ -157,10 +160,11 @@ export class ImageService {
       const finalFilename = filename || `image-${Date.now()}.jpg`;
       const key = this.generateImageKey(finalFilename);
 
-      const response = await fetch(`${this.baseUrl}/objects/${key}`, {
+      const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.config.CLOUDFLARE_ACCOUNT_ID}/r2/buckets/${this.config.BUCKET_NAME}`;
+      const response = await fetch(`${baseUrl}/objects/${key}`, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${this.apiToken}`,
+          "Authorization": `Bearer ${this.config.CLOUDFLARE_TOKEN}`,
           "Content-Type": contentType,
           "Content-Length": size.toString(),
         },
@@ -172,7 +176,7 @@ export class ImageService {
         throw new Error(`R2 upload failed: ${response.status} - ${errorText}`);
       }
 
-      const publicUrl = `${this.publicBucketUrl}/${key}`;
+      const publicUrl = `${this.config.PUBLIC_BUCKET_URL}/${key}`;
       const variants = this.buildImageVariants(key);
 
       return {
@@ -195,10 +199,11 @@ export class ImageService {
    */
   async deleteImage(imageKey: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/objects/${imageKey}`, {
+      const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.config.CLOUDFLARE_ACCOUNT_ID}/r2/buckets/${this.config.BUCKET_NAME}`;
+      const response = await fetch(`${baseUrl}/objects/${imageKey}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${this.apiToken}`,
+          "Authorization": `Bearer ${this.config.CLOUDFLARE_TOKEN}`,
         },
       });
 
@@ -225,10 +230,12 @@ export class ImageService {
     variants: Record<string, string>;
   }> {
     try {
-      const response = await fetch(`${this.baseUrl}/objects/${imageKey}`, {
+
+       const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${this.config.CLOUDFLARE_ACCOUNT_ID}/r2/buckets/${this.config.BUCKET_NAME}`;
+      const response = await fetch(`${baseUrl}/objects/${imageKey}`, {
         method: "HEAD",
         headers: {
-          "Authorization": `Bearer ${this.apiToken}`,
+          "Authorization": `Bearer ${this.config.CLOUDFLARE_TOKEN}`,
         },
       });
 
@@ -237,7 +244,7 @@ export class ImageService {
         throw new Error(`R2 head request failed: ${response.status} - ${errorText}`);
       }
 
-      const publicUrl = `${this.publicBucketUrl}/${imageKey}`;
+      const publicUrl = `${this.config.PUBLIC_BUCKET_URL}/${imageKey}`;
       const variants = this.buildImageVariants(imageKey);
       const lastModified = response.headers.get('last-modified') || new Date().toISOString();
       const contentLength = response.headers.get('content-length');
@@ -260,5 +267,19 @@ export class ImageService {
   }
 }
 
-// Export singleton instance
-export const imageService = new ImageService();
+// Legacy singleton export - deprecated
+// Use ImageService.create(env) in your routes instead
+export const imageService = {
+  uploadImage: () => {
+    throw new Error('Use ImageService.create(c.env) instead of imageService singleton');
+  },
+  uploadImageFromUrl: () => {
+    throw new Error('Use ImageService.create(c.env) instead of imageService singleton');
+  },
+  deleteImage: () => {
+    throw new Error('Use ImageService.create(c.env) instead of imageService singleton');
+  },
+  getImageDetails: () => {
+    throw new Error('Use ImageService.create(c.env) instead of imageService singleton');
+  },
+};

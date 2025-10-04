@@ -9,7 +9,15 @@ import type {
   ApiResponse
 } from "../../../shared/src/types/admin";
 
-const categoryRoutes = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+};
+
+const categoryRoutes = new Hono<{ Bindings: Bindings }>();
 
 /**
  * Get all categories
@@ -18,7 +26,7 @@ const categoryRoutes = new Hono();
  */
 categoryRoutes.get("/", async (c) => {
   try {
-    const result = await categoryService.getCategories();
+    const result = await categoryService.getCategories(c.env.DATABASE_URL);
 
     const response: CategoriesResponse = {
       success: true,
@@ -54,7 +62,7 @@ categoryRoutes.get("/:id", async (c) => {
       } as ApiResponse, 400);
     }
 
-    const category = await categoryService.getCategoryById(id);
+    const category = await categoryService.getCategoryById(c.env.DATABASE_URL, id);
 
     if (!category) {
       return c.json({
@@ -104,7 +112,7 @@ categoryRoutes.post("/", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const category = await categoryService.createCategory(validatedData);
+    const category = await categoryService.createCategory(c.env.DATABASE_URL, validatedData);
 
     const response: CategoryResponse = {
       success: true,
@@ -154,7 +162,7 @@ categoryRoutes.put("/:id", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const category = await categoryService.updateCategory(id, validatedData);
+    const category = await categoryService.updateCategory(c.env.DATABASE_URL, id, validatedData);
 
     if (!category) {
       return c.json({
@@ -198,7 +206,7 @@ categoryRoutes.delete("/:id", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const deleted = await categoryService.deleteCategory(id);
+    const deleted = await categoryService.deleteCategory(c.env.DATABASE_URL, id);
 
     if (!deleted) {
       return c.json({
@@ -239,7 +247,7 @@ categoryRoutes.patch("/:id/toggle", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const category = await categoryService.toggleCategoryEnabled(id);
+    const category = await categoryService.toggleCategoryEnabled(c.env.DATABASE_URL, id);
 
     if (!category) {
       return c.json({

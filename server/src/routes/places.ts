@@ -10,7 +10,15 @@ import type {
   PlaceQuery
 } from "../../../shared/src/types/admin";
 
-const placeRoutes = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+};
+
+const placeRoutes = new Hono<{ Bindings: Bindings }>();
 
 /**
  * Get all places with optional filtering
@@ -26,7 +34,7 @@ placeRoutes.get("/", async (c) => {
       destinationId: query.destinationId,
     };
 
-    const places = await placeService.getPlaces(placeQuery);
+    const places = await placeService.getPlaces(c.env.DATABASE_URL, placeQuery);
 
     const response: PlacesResponse = {
       success: true,
@@ -62,7 +70,7 @@ placeRoutes.get("/:id", async (c) => {
       } as ApiResponse, 400);
     }
 
-    const place = await placeService.getPlaceById(id);
+    const place = await placeService.getPlaceById(c.env.DATABASE_URL, id);
 
     if (!place) {
       return c.json({
@@ -119,7 +127,7 @@ placeRoutes.post("/", requireAuth, async (c) => {
       location: body.location,
     };
 
-    const newPlace = await placeService.createPlace(placeData);
+    const newPlace = await placeService.createPlace(c.env.DATABASE_URL, placeData);
 
     const response: PlaceResponse = {
       success: true,
@@ -168,7 +176,7 @@ placeRoutes.put("/:id", requireAuth, async (c) => {
       destinationId: body.destinationId,
     };
 
-    const updatedPlace = await placeService.updatePlace(id, placeData);
+    const updatedPlace = await placeService.updatePlace(c.env.DATABASE_URL, id, placeData);
 
     if (!updatedPlace) {
       return c.json({
@@ -212,7 +220,7 @@ placeRoutes.delete("/:id", requireAuth, async (c) => {
       } as ApiResponse, 400);
     }
 
-    const deleted = await placeService.deletePlace(id);
+    const deleted = await placeService.deletePlace(c.env.DATABASE_URL, id);
 
     if (!deleted) {
       return c.json({

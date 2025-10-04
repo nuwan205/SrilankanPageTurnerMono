@@ -1,12 +1,20 @@
 import { Hono } from "hono";
 import { requireAuth } from "../middleware/auth";
-import { imageService } from "../services/imageService";
+import { ImageService } from "../services/imageService";
 import type { 
   ImageResponse, 
   ApiResponse 
 } from "../../../shared/src/types/admin";
 
-const imageRoutes = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_TOKEN: string;
+  BUCKET_NAME: string;
+  PUBLIC_BUCKET_URL: string;
+};
+
+const imageRoutes = new Hono<{ Bindings: Bindings }>();
 
 // Apply auth middleware to all image routes
 imageRoutes.use("*", requireAuth);
@@ -50,6 +58,7 @@ imageRoutes.post("/upload", async (c) => {
       } as ApiResponse, 400);
     }
 
+    const imageService = ImageService.create(c.env);
     const result = await imageService.uploadImage(file, { alt, caption });
 
     const response: ApiResponse<ImageResponse> = {
@@ -96,6 +105,7 @@ imageRoutes.post("/upload-from-url", async (c) => {
       } as ApiResponse, 400);
     }
 
+    const imageService = ImageService.create(c.env);
     const result = await imageService.uploadImageFromUrl(url, filename);
 
     const response: ApiResponse<ImageResponse> = {
@@ -133,6 +143,7 @@ imageRoutes.delete("/:imageId", async (c) => {
     }
 
     console.log('Calling imageService.deleteImage with:', imageId);
+    const imageService = ImageService.create(c.env);
     await imageService.deleteImage(imageId);
     console.log('Image deleted successfully:', imageId);
 
@@ -166,6 +177,7 @@ imageRoutes.get("/:imageId", async (c) => {
       } as ApiResponse, 400);
     }
 
+    const imageService = ImageService.create(c.env);
     const result = await imageService.getImageDetails(imageId);
 
     const response: ApiResponse<ImageResponse> = {

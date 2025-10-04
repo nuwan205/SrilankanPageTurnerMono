@@ -24,7 +24,7 @@ import type {
   ApiResponse 
 } from "../../../shared/src/types/admin";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:3001";
+const API_BASE_URL = import.meta.env.DEV ? "http://127.0.0.1:3001" : "";
 
 class ApiClient {
   private readonly baseUrl: string;

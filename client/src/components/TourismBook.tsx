@@ -29,12 +29,24 @@ interface Place {
   description: string;
   rating: number;
   duration: string;
-  image: string;
+  timeDuration?: string;
+  highlights?: string[];
   images: string[];
-  highlights: string[];
   location: {
     lat: number;
     lng: number;
+  };
+  ad?: {
+    id: string;
+    title: string;
+    description: string;
+    images: string[];
+    rating: number;
+    phone?: string;
+    whatsapp?: string;
+    email?: string;
+    link: string;
+    bookingLink?: string;
   };
 }
 

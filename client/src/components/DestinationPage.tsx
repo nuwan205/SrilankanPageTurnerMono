@@ -347,7 +347,7 @@ const DestinationPage: React.FC<DestinationPageProps> = ({
   }, []);
 
   return (
-    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth' }}>
+    <div className="h-screen bg-gradient-paper relative overflow-y-auto hide-scrollbar" style={{ scrollBehavior: 'smooth', touchAction: 'pan-y' }}>
       {/* Cultural Pattern Background */}
       <div className="cultural-pattern" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
       

@@ -71,7 +71,7 @@ function AdminLayout() {
 
 	return (
 		<AuthGuard>
-			<div className="min-h-screen bg-background dark admin-dark-mode" style={{ colorScheme: 'dark' }}>
+			<div className="min-h-screen bg-background dark admin-dark-mode overflow-y-auto" style={{ colorScheme: 'dark', height: '100vh', position: 'fixed', inset: 0 }}>
 				{/* Mobile header */}
 				<div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
 				<h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
@@ -159,7 +159,7 @@ function AdminLayout() {
 			)}
 
 			{/* Main content */}
-			<main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+			<main className="lg:ml-64 min-h-screen pt-16 lg:pt-0 overflow-y-auto" style={{ height: '100vh', overflowY: 'auto' }}>
 				<Outlet />
 			</main>
 		</div>

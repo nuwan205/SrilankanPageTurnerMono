@@ -1,7 +1,7 @@
-import { db } from "../config/drizzle";
+import { getDb } from "../config/drizzle";
 import { categories } from "../db/schema/categories";
 import { eq, desc } from "drizzle-orm";
-import { imageService } from "./imageService";
+import { ImageService } from "./imageService";
 import type { 
   Category as SharedCategory, 
   CreateCategory, 
@@ -12,7 +12,8 @@ export class CategoryService {
   /**
    * Create a new category
    */
-  async createCategory(data: CreateCategory): Promise<SharedCategory> {
+  async createCategory(databaseUrl: string, data: CreateCategory): Promise<SharedCategory> {
+    const db = getDb(databaseUrl);
     const id = `category-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     const [category] = await db
@@ -31,9 +32,10 @@ export class CategoryService {
   /**
    * Get all categories
    */
-  async getCategories(): Promise<{
+  async getCategories(databaseUrl: string): Promise<{
     categories: SharedCategory[];
   }> {
+    const db = getDb(databaseUrl);
     // Get all categories without any filtering
     const categoryList = await db
       .select()
@@ -48,7 +50,8 @@ export class CategoryService {
   /**
    * Get a single category by ID
    */
-  async getCategoryById(id: string): Promise<SharedCategory | null> {
+  async getCategoryById(databaseUrl: string, id: string): Promise<SharedCategory | null> {
+    const db = getDb(databaseUrl);
     const [category] = await db
       .select()
       .from(categories)
@@ -61,7 +64,8 @@ export class CategoryService {
   /**
    * Update a category
    */
-  async updateCategory(id: string, data: UpdateCategory): Promise<SharedCategory | null> {
+  async updateCategory(databaseUrl: string, id: string, data: UpdateCategory): Promise<SharedCategory | null> {
+    const db = getDb(databaseUrl);
     const [category] = await db
       .update(categories)
       .set({
@@ -77,7 +81,8 @@ export class CategoryService {
   /**
    * Delete a category
    */
-  async deleteCategory(id: string): Promise<boolean> {
+  async deleteCategory(databaseUrl: string, id: string, imageService?: ImageService): Promise<boolean> {
+    const db = getDb(databaseUrl);
     // First, get the category to retrieve its image
     const [category] = await db
       .select()
@@ -96,7 +101,7 @@ export class CategoryService {
       .returning({ id: categories.id });
 
     // If deletion successful and category has an image, delete it from R2 storage
-    if (result.length > 0 && category.imageUrl) {
+    if (result.length > 0 && category.imageUrl && imageService) {
       try {
         const imageKey = this.extractImageKey(category.imageUrl);
         await imageService.deleteImage(imageKey);
@@ -112,7 +117,8 @@ export class CategoryService {
   /**
    * Toggle category enabled status
    */
-  async toggleCategoryEnabled(id: string): Promise<SharedCategory | null> {
+  async toggleCategoryEnabled(databaseUrl: string, id: string): Promise<SharedCategory | null> {
+    const db = getDb(databaseUrl);
     const [category] = await db
       .select()
       .from(categories)
