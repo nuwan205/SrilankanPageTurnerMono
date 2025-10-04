@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Search, Save, X, MapPin, ArrowLeft } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { Plus, Edit, Trash2, Search, Save, X, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,13 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { GoogleMap, LoadScript, Marker, Autocomplete } from '@react-google-maps/api';
 import ImageUpload from '@/components/ui/ImageUpload';
+import { Badge } from '@/components/ui/badge';
+import RichTextEditor from '@/components/ui/SimpleTextEditor';
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import { apiClient } from '@/lib/api';
-import type { Place } from '@/lib/api';
+import type { Place, Category } from '@/lib/api';
 import { toast } from 'sonner';
-
-interface ManagePlacesPageProps {
-  destinationId?: string;
-}
 
 // Google Maps configuration
 const libraries: ("places")[] = ["places"];
@@ -29,13 +27,19 @@ const defaultCenter = {
   lng: 80.7718 // Sri Lanka center
 };
 
-const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) => {
+const ManagePlacesPage: React.FC = () => {
   const [places, setPlaces] = useState<Place[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const [searchInput, setSearchInput] = useState('');
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -43,30 +47,39 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
     description: '',
     rating: 4.5,
     duration: '',
-    timeDuration: '',
     highlights: '',
     images: [] as string[],
     location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
-    destinationId: destinationId || ''
+    categoryIds: [] as string[],
+    // Travel Tips
+    bestTime: '',
+    travelTime: '',
+    idealFor: ''
   });
 
-  // Map state
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [markerPosition, setMarkerPosition] = useState(defaultCenter);
-  const [searchInput, setSearchInput] = useState('');
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-
-  // Load places on mount and when destinationId changes
+  // Load places and categories on mount
   useEffect(() => {
     loadPlaces();
-  }, [destinationId]);
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await apiClient.getCategories();
+      if (response.success && response.data) {
+        setCategories(response.data.categories);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      toast.error('Failed to load categories');
+    }
+  };
 
   const loadPlaces = async () => {
     try {
       setLoading(true);
-      console.log(loading)
       const response = await apiClient.getPlaces({
-        destinationId: destinationId,
+        categoryId: categoryFilter || undefined,
       });
       if (response.success && response.data) {
         setPlaces(response.data.places);
@@ -87,11 +100,13 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         description: place.description,
         rating: place.rating,
         duration: place.duration,
-        timeDuration: place.timeDuration || '',
         highlights: place.highlights ? place.highlights.join(', ') : '',
         images: place.images,
         location: place.location,
-        destinationId: place.destinationId
+        categoryIds: place.categoryIds || [],
+        bestTime: place.bestTime || '',
+        travelTime: place.travelTime || '',
+        idealFor: place.idealFor || ''
       });
       setMarkerPosition(place.location);
       setMapCenter(place.location);
@@ -102,11 +117,13 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         description: '',
         rating: 4.5,
         duration: '',
-        timeDuration: '',
         highlights: '',
         images: [],
         location: { lat: defaultCenter.lat, lng: defaultCenter.lng },
-        destinationId: destinationId || ''
+        categoryIds: [],
+        bestTime: '',
+        travelTime: '',
+        idealFor: ''
       });
       setMarkerPosition(defaultCenter);
       setMapCenter(defaultCenter);
@@ -126,13 +143,28 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
       return;
     }
 
-    if (!formData.timeDuration.trim()) {
-      toast.error('Please enter time duration');
+    if (!formData.highlights.trim()) {
+      toast.error('Please enter at least one highlight');
       return;
     }
 
-    if (!formData.highlights.trim()) {
-      toast.error('Please enter at least one highlight');
+    if (formData.categoryIds.length === 0) {
+      toast.error('Please select at least one category');
+      return;
+    }
+
+    if (!formData.bestTime.trim()) {
+      toast.error('Please enter best time to visit');
+      return;
+    }
+
+    if (!formData.travelTime.trim()) {
+      toast.error('Please enter travel time');
+      return;
+    }
+
+    if (!formData.idealFor.trim()) {
+      toast.error('Please enter ideal for information');
       return;
     }
 
@@ -140,15 +172,17 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
       setSubmitting(true);
 
       const placeData = {
-        destinationId: formData.destinationId,
+        categoryIds: formData.categoryIds,
         name: formData.name,
         description: formData.description,
         rating: Number(formData.rating),
         duration: formData.duration,
-        timeDuration: formData.timeDuration,
         highlights: formData.highlights.split(',').map(h => h.trim()).filter(Boolean),
         images: formData.images,
         location: formData.location,
+        bestTime: formData.bestTime,
+        travelTime: formData.travelTime,
+        idealFor: formData.idealFor,
       };
 
       if (editingPlace) {
@@ -167,6 +201,15 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      categoryIds: prev.categoryIds.includes(categoryId)
+        ? prev.categoryIds.filter(id => id !== categoryId)
+        : [...prev.categoryIds, categoryId]
+    }));
   };
 
   const handleDelete = async (id: string) => {
@@ -228,15 +271,12 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
   }, []);
 
   const filteredPlaces = places.filter(place => {
-    // Filter by destination if destinationId is provided
-    const matchesDestination = destinationId ? place.destinationId === destinationId : true;
-    
     // Filter by search query
     const matchesSearch = 
       place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       place.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesDestination && matchesSearch;
+    return matchesSearch;
   });
 
   return (
@@ -250,28 +290,13 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
         className="relative z-10 mb-8"
       >
         <div className="max-w-7xl mx-auto">
-          {/* Back Button (shown when viewing specific destination) */}
-          {destinationId && (
-            <Link
-              to="/admin/destinations"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Destinations
-            </Link>
-          )}
-          
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 Manage Places
-                {destinationId && <span className="text-muted-foreground text-2xl ml-2">for Destination</span>}
               </h1>
               <p className="text-muted-foreground">
-                {destinationId 
-                  ? `Managing places for destination ID: ${destinationId}`
-                  : 'Add, edit, or remove places for all destinations'
-                }
+                Add, edit, or remove places. Each place can belong to multiple categories.
               </p>
             </div>
             <Button 
@@ -283,23 +308,52 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
             </Button>
           </div>
 
-          {/* Search */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search places..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search and Filter */}
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search places..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+              }}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">All Categories</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>{category.title}</option>
+              ))}
+            </select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadPlaces}
+            >
+              Apply Filter
+            </Button>
           </div>
         </div>
       </motion.div>
 
       {/* Places Grid */}
       <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlaces.map((place, index) => (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading places...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPlaces.map((place, index) => (
             <motion.div
               key={place.id}
               initial={{ opacity: 0, y: 20 }}
@@ -325,8 +379,30 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
                 </div>
                 <div className="p-4">
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {place.description}
+                    {place.description
+                      .replace(/<[^>]*>/g, '') // Remove HTML tags
+                      .replace(/#{1,3}\s+/g, '') // Remove markdown headings
+                      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
+                      .replace(/\*(.*?)\*/g, '$1') // Remove italic markers
+                      .replace(/^[•\-\*]\s+/gm, '') // Remove bullet points
+                      .replace(/^\d+\.\s+/gm, '') // Remove numbered list markers
+                      .replace(/\n+/g, ' ') // Replace line breaks with spaces
+                      .trim()
+                    }
                   </p>
+                  
+                  {/* Category Badges */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {place.categoryIds.map(catId => {
+                      const category = categories.find(c => c.id === catId);
+                      return category ? (
+                        <Badge key={catId} variant="secondary" className="text-xs">
+                          {category.title}
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                  
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
                     <MapPin className="w-3 h-3" />
                     <span>{place.location.lat.toFixed(4)}, {place.location.lng.toFixed(4)}</span>
@@ -354,14 +430,15 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
               </Card>
             </motion.div>
           ))}
+          
+          {filteredPlaces.length === 0 && (
+            <div className="text-center py-12 col-span-full">
+              <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No places found</h3>
+              <p className="text-muted-foreground">Try adjusting your search or add a new place.</p>
+            </div>
+          )}
         </div>
-
-        {filteredPlaces.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No places found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or add a new place.</p>
-          </div>
         )}
       </div>
 
@@ -388,18 +465,27 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
 
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Description ({formData.description.length}/500)
+                  Description
                 </label>
-                <Textarea
-                  placeholder="Describe the place..."
+                <RichTextEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  maxLength={500}
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  placeholder="Describe the place with rich formatting..."
+                  maxWords={500}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Maximum 500 characters
-                </p>
+                
+                {/* Formatted Preview */}
+                {formData.description && (
+                  <div className="mt-4 border border-border rounded-lg p-4 bg-muted/20">
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-primary rounded-full"></span>
+                      Preview (How it will appear to users)
+                    </h4>
+                    <div className="prose prose-sm max-w-none">
+                      <MarkdownRenderer content={formData.description} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -425,18 +511,6 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Time Duration</label>
-                <Input
-                  placeholder="e.g., 2-3 hours to fully explore"
-                  value={formData.timeDuration}
-                  onChange={(e) => setFormData({ ...formData, timeDuration: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Recommended time needed to explore this place
-                </p>
-              </div>
-
-              <div>
                 <label className="text-sm font-medium mb-2 block">Key Highlights</label>
                 <Textarea
                   placeholder="e.g., Ancient frescoes, Lion's Gate, Summit views"
@@ -446,6 +520,71 @@ const ManagePlacesPage: React.FC<ManagePlacesPageProps> = ({ destinationId }) =>
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Enter highlights separated by commas
+                </p>
+              </div>
+
+              {/* Travel Tips Section */}
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-lg font-semibold mb-4">Travel Tips</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Best Time to Visit <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      placeholder="e.g., March–September (dry season)"
+                      value={formData.bestTime}
+                      onChange={(e) => setFormData({ ...formData, bestTime: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Travel Time <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      placeholder="e.g., 4–5 hours from Colombo"
+                      value={formData.travelTime}
+                      onChange={(e) => setFormData({ ...formData, travelTime: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Ideal For <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      placeholder="e.g., Eco-tourists, families, nature enthusiasts"
+                      value={formData.idealFor}
+                      onChange={(e) => setFormData({ ...formData, idealFor: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Categories <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                  {categories.length === 0 ? (
+                    <p className="text-sm text-muted-foreground col-span-2">Loading categories...</p>
+                  ) : (
+                    categories.map(category => (
+                      <label key={category.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={formData.categoryIds.includes(category.id)}
+                          onChange={() => toggleCategory(category.id)}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm">{category.title}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select at least one category. Places can belong to multiple categories.
                 </p>
               </div>
 

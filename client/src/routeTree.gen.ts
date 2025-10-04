@@ -17,8 +17,8 @@ import { Route as AdminPlacesRouteImport } from './routes/admin/places'
 import { Route as AdminDestinationsRouteImport } from './routes/admin/destinations'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminAdsRouteImport } from './routes/admin/ads'
-import { Route as AdminDestinationsIndexRouteImport } from './routes/admin/destinations.index'
 import { Route as AdminDestinationsDestinationIdPlacesRouteImport } from './routes/admin/destinations/$destinationId/places'
+import { Route as AdminCategoriesCategoryIdPlacesRouteImport } from './routes/admin/categories/$categoryId/places'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -60,38 +60,40 @@ const AdminAdsRoute = AdminAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminDestinationsIndexRoute = AdminDestinationsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminDestinationsRoute,
-} as any)
 const AdminDestinationsDestinationIdPlacesRoute =
   AdminDestinationsDestinationIdPlacesRouteImport.update({
     id: '/$destinationId/places',
     path: '/$destinationId/places',
     getParentRoute: () => AdminDestinationsRoute,
   } as any)
+const AdminCategoriesCategoryIdPlacesRoute =
+  AdminCategoriesCategoryIdPlacesRouteImport.update({
+    id: '/$categoryId/places',
+    path: '/$categoryId/places',
+    getParentRoute: () => AdminCategoriesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
   '/admin/destinations': typeof AdminDestinationsRouteWithChildren
   '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/destinations/': typeof AdminDestinationsIndexRoute
+  '/admin/categories/$categoryId/places': typeof AdminCategoriesCategoryIdPlacesRoute
   '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/ads': typeof AdminAdsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
+  '/admin/destinations': typeof AdminDestinationsRouteWithChildren
   '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin': typeof AdminIndexRoute
-  '/admin/destinations': typeof AdminDestinationsIndexRoute
+  '/admin/categories/$categoryId/places': typeof AdminCategoriesCategoryIdPlacesRoute
   '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRoutesById {
@@ -99,12 +101,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/ads': typeof AdminAdsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
   '/admin/destinations': typeof AdminDestinationsRouteWithChildren
   '/admin/places': typeof AdminPlacesRoute
   '/auth/signin': typeof AuthSigninRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/destinations/': typeof AdminDestinationsIndexRoute
+  '/admin/categories/$categoryId/places': typeof AdminCategoriesCategoryIdPlacesRoute
   '/admin/destinations/$destinationId/places': typeof AdminDestinationsDestinationIdPlacesRoute
 }
 export interface FileRouteTypes {
@@ -118,17 +120,18 @@ export interface FileRouteTypes {
     | '/admin/places'
     | '/auth/signin'
     | '/admin/'
-    | '/admin/destinations/'
+    | '/admin/categories/$categoryId/places'
     | '/admin/destinations/$destinationId/places'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin/ads'
     | '/admin/categories'
+    | '/admin/destinations'
     | '/admin/places'
     | '/auth/signin'
     | '/admin'
-    | '/admin/destinations'
+    | '/admin/categories/$categoryId/places'
     | '/admin/destinations/$destinationId/places'
   id:
     | '__root__'
@@ -140,7 +143,7 @@ export interface FileRouteTypes {
     | '/admin/places'
     | '/auth/signin'
     | '/admin/'
-    | '/admin/destinations/'
+    | '/admin/categories/$categoryId/places'
     | '/admin/destinations/$destinationId/places'
   fileRoutesById: FileRoutesById
 }
@@ -208,13 +211,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/destinations/': {
-      id: '/admin/destinations/'
-      path: '/'
-      fullPath: '/admin/destinations/'
-      preLoaderRoute: typeof AdminDestinationsIndexRouteImport
-      parentRoute: typeof AdminDestinationsRoute
-    }
     '/admin/destinations/$destinationId/places': {
       id: '/admin/destinations/$destinationId/places'
       path: '/$destinationId/places'
@@ -222,16 +218,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDestinationsDestinationIdPlacesRouteImport
       parentRoute: typeof AdminDestinationsRoute
     }
+    '/admin/categories/$categoryId/places': {
+      id: '/admin/categories/$categoryId/places'
+      path: '/$categoryId/places'
+      fullPath: '/admin/categories/$categoryId/places'
+      preLoaderRoute: typeof AdminCategoriesCategoryIdPlacesRouteImport
+      parentRoute: typeof AdminCategoriesRoute
+    }
   }
 }
 
+interface AdminCategoriesRouteChildren {
+  AdminCategoriesCategoryIdPlacesRoute: typeof AdminCategoriesCategoryIdPlacesRoute
+}
+
+const AdminCategoriesRouteChildren: AdminCategoriesRouteChildren = {
+  AdminCategoriesCategoryIdPlacesRoute: AdminCategoriesCategoryIdPlacesRoute,
+}
+
+const AdminCategoriesRouteWithChildren = AdminCategoriesRoute._addFileChildren(
+  AdminCategoriesRouteChildren,
+)
+
 interface AdminDestinationsRouteChildren {
-  AdminDestinationsIndexRoute: typeof AdminDestinationsIndexRoute
   AdminDestinationsDestinationIdPlacesRoute: typeof AdminDestinationsDestinationIdPlacesRoute
 }
 
 const AdminDestinationsRouteChildren: AdminDestinationsRouteChildren = {
-  AdminDestinationsIndexRoute: AdminDestinationsIndexRoute,
   AdminDestinationsDestinationIdPlacesRoute:
     AdminDestinationsDestinationIdPlacesRoute,
 }
@@ -241,7 +254,7 @@ const AdminDestinationsRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminAdsRoute: typeof AdminAdsRoute
-  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRouteWithChildren
   AdminDestinationsRoute: typeof AdminDestinationsRouteWithChildren
   AdminPlacesRoute: typeof AdminPlacesRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -249,7 +262,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdsRoute: AdminAdsRoute,
-  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCategoriesRoute: AdminCategoriesRouteWithChildren,
   AdminDestinationsRoute: AdminDestinationsRouteWithChildren,
   AdminPlacesRoute: AdminPlacesRoute,
   AdminIndexRoute: AdminIndexRoute,

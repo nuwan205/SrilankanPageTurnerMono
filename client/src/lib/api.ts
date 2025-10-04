@@ -5,11 +5,6 @@ import type {
   Category, 
   CategoriesResponse, 
   CategoryResponse,
-  CreateDestination,
-  UpdateDestination,
-  Destination,
-  DestinationsResponse,
-  DestinationResponse,
   CreatePlace,
   UpdatePlace,
   Place,
@@ -154,68 +149,14 @@ class ApiClient {
     return this.request<ApiResponse & { data?: ImageResponse }>(`/api/images/${imageId}`);
   }
 
-  // Destination API methods
-  async getDestinations(params?: {
-    categoryId?: string;
-    enabled?: boolean;
-    search?: string;
-  }): Promise<DestinationsResponse> {
-    const searchParams = new URLSearchParams();
-    
-    if (params) {
-      if (params.categoryId) searchParams.set("categoryId", params.categoryId);
-      if (params.enabled !== undefined) searchParams.set("enabled", params.enabled.toString());
-      if (params.search) searchParams.set("search", params.search);
-    }
-
-    const query = searchParams.toString();
-    const endpoint = query ? `/api/destinations?${query}` : "/api/destinations";
-    
-    return this.request<DestinationsResponse>(endpoint);
-  }
-
-  async getDestinationById(id: string): Promise<DestinationResponse> {
-    return this.request<DestinationResponse>(`/api/destinations/${id}`);
-  }
-
-  async createDestination(data: CreateDestination): Promise<DestinationResponse> {
-    return this.request<DestinationResponse>("/api/destinations", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateDestination(id: string, data: UpdateDestination): Promise<DestinationResponse> {
-    return this.request<DestinationResponse>(`/api/destinations/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async deleteDestination(id: string): Promise<ApiResponse> {
-    return this.request<ApiResponse>(`/api/destinations/${id}`, {
-      method: "DELETE",
-    });
-  }
-
-  async toggleDestinationEnabled(id: string): Promise<DestinationResponse> {
-    return this.request<DestinationResponse>(`/api/destinations/${id}/toggle`, {
-      method: "PATCH",
-    });
-  }
-
-  async getDestinationsCountByCategory(categoryId: string): Promise<ApiResponse & { data?: { count: number } }> {
-    return this.request<ApiResponse & { data?: { count: number } }>(`/api/destinations/category/${categoryId}/count`);
-  }
-
   // Place API methods
   async getPlaces(params?: {
-    destinationId?: string;
+    categoryId?: string;
   }): Promise<PlacesResponse> {
     const searchParams = new URLSearchParams();
     
     if (params) {
-      if (params.destinationId) searchParams.set("destinationId", params.destinationId);
+      if (params.categoryId) searchParams.set("categoryId", params.categoryId);
     }
 
     const query = searchParams.toString();
@@ -288,11 +229,6 @@ export type {
   UpdateCategory, 
   CategoriesResponse, 
   CategoryResponse,
-  Destination,
-  CreateDestination,
-  UpdateDestination,
-  DestinationsResponse,
-  DestinationResponse,
   Place,
   CreatePlace,
   UpdatePlace,

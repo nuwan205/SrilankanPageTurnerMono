@@ -271,40 +271,43 @@ const AdminCategories: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleToggleEnabled(category.id)}
-                  className="flex-1"
-                >
-                  {category.enabled ? (
-                    <>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Visible
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-4 w-4 mr-1" />
-                      Hidden
-                    </>
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(category)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDelete(category.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="space-y-2">
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleEnabled(category.id)}
+                    className="flex-1"
+                  >
+                    {category.enabled ? (
+                      <>
+                        <Eye className="h-4 w-4 mr-1" />
+                        Visible
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-4 w-4 mr-1" />
+                        Hidden
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(category)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDelete(category.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>

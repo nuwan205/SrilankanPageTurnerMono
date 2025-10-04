@@ -7,7 +7,9 @@ import { getConfig } from '../config'; // Import your application configuration
 
 async function runMigrations() {
 
-  const config = getConfig();
+  const config = {
+    DATABASE_URL: "postgresql://neondb_owner:npg_ZEnATlmUg1R6@ep-ancient-voice-a1z1uyd8-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  };
 
   if (!config.DATABASE_URL) {
     console.error('DATABASE_URL is not set in environment variables. Please check your .env file.');

@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ImageUpload from '@/components/ui/ImageUpload';
+import PosterImageUpload from '@/components/ui/PosterImageUpload';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import type { Place } from '@/lib/api';
@@ -20,6 +21,7 @@ interface Ad {
   title: string;
   description: string;
   images: string[];
+  poster: string; // NEW FIELD: Single poster/company image
   rating: number;
   phone?: string;
   whatsapp?: string;
@@ -46,6 +48,7 @@ const ManageAdsPage: React.FC = () => {
     title: '',
     description: '',
     images: [] as string[],
+    poster: '', // NEW FIELD: Single poster image
     rating: 4.5,
     phone: '',
     whatsapp: '',
@@ -95,6 +98,7 @@ const ManageAdsPage: React.FC = () => {
         title: ad.title,
         description: ad.description,
         images: ad.images,
+        poster: ad.poster, // NEW FIELD
         rating: ad.rating,
         phone: ad.phone || '',
         whatsapp: ad.whatsapp || '',
@@ -109,6 +113,7 @@ const ManageAdsPage: React.FC = () => {
         title: '',
         description: '',
         images: [],
+        poster: '', // NEW FIELD
         rating: 4.5,
         phone: '',
         whatsapp: '',
@@ -142,6 +147,11 @@ const ManageAdsPage: React.FC = () => {
       return;
     }
 
+    if (!formData.poster.trim()) {
+      toast.error('Please upload a poster image');
+      return;
+    }
+
     if (formData.images.length === 0) {
       toast.error('Please add at least one image');
       return;
@@ -160,6 +170,7 @@ const ManageAdsPage: React.FC = () => {
         title: formData.title,
         description: formData.description,
         images: formData.images,
+        poster: formData.poster, // NEW FIELD
         rating: Number(formData.rating),
         phone: formData.phone || undefined,
         whatsapp: formData.whatsapp || undefined,
@@ -228,7 +239,7 @@ const ManageAdsPage: React.FC = () => {
                 Manage Ads
               </h1>
               <p className="text-muted-foreground">
-                Create and manage sponsored ads for places (One ad per place)
+                Create and manage sponsored ads for places (Multiple ads per place allowed)
               </p>
             </div>
             <Button 
@@ -487,7 +498,7 @@ const ManageAdsPage: React.FC = () => {
                   )}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select the place this ad is for (one ad per place)
+                  Select the place this ad is for (multiple ads per place allowed)
                 </p>
               </div>
 
@@ -532,16 +543,52 @@ const ManageAdsPage: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <ImageUpload
-                  value={formData.images}
-                  onChange={(urls) => setFormData({ ...formData, images: urls })}
-                  maxImages={5}
-                  label="Ad Images (Max 5) *"
+              {/* Poster Image Upload - Single Company/Location Image */}
+              <div className="border-2 border-dashed border-orange-400 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Poster Image (Main Visual) - Upload 1 Image
+                  </h4>
+                </div>
+                <PosterImageUpload
+                  value={formData.poster}
+                  onChange={(url) => {
+                    console.log('🎨 POSTER onChange:', url);
+                    setFormData(prev => ({ ...prev, poster: url }));
+                  }}
+                  label="Upload Poster Image"
                   maxFileSize={5}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload high-quality images for the ad carousel
+                <p className="text-xs text-muted-foreground mt-2">
+                  📌 Upload ONE main poster or company logo image
+                </p>
+              </div>
+
+              {/* Gallery Images Upload - Multiple Images for Carousel */}
+              <div className="border-2 border-dashed border-blue-400 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Gallery Images (Carousel) - Upload 1-5 Images
+                  </h4>
+                </div>
+                <ImageUpload
+                  key={`gallery-${isDialogOpen}-${editingAd?.id || 'new'}`}
+                  value={formData.images || []}
+                  onChange={(urls) => {
+                    console.log('🖼️ GALLERY onChange:', urls);
+                    setFormData(prev => {
+                      console.log('🖼️ GALLERY setting:', urls);
+                      return { ...prev, images: urls };
+                    });
+                  }}
+                  maxImages={5}
+                  label="Upload Gallery Images"
+                  maxFileSize={5}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  🖼️ Upload 1-5 high-quality images for the carousel gallery
                 </p>
               </div>
             </div>

@@ -57,6 +57,7 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.63.0",
     "react-leaflet": "^5.0.0",
+    "react-quill": "^2.0.0",
     "react-resizable-panels": "^3.0.6",
     "react-select": "^5.10.2",
     "recharts": "^3.2.1",

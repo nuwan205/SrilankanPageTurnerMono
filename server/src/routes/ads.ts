@@ -72,17 +72,7 @@ ads.post("/", async (c) => {
     const body = await c.req.json();
     const validatedData = validateCreateAd(body);
 
-    // Check if place already has an ad
-    const hasAd = await adService.checkPlaceHasAd(c.env.DATABASE_URL, validatedData.placeId);
-    if (hasAd) {
-      return c.json(
-        {
-          success: false,
-          error: "This place already has an ad. Only one ad per place is allowed.",
-        },
-        400
-      );
-    }
+    // Multiple ads per place are now allowed - no check needed
 
     const newAd = await adService.createAd(c.env.DATABASE_URL, validatedData);
 
@@ -125,19 +115,7 @@ ads.put("/:id", async (c) => {
     const body = await c.req.json();
     const validatedData = validateUpdateAd(body);
 
-    // If updating placeId, check if the new place already has an ad
-    if (validatedData.placeId) {
-      const hasAd = await adService.checkPlaceHasAd(c.env.DATABASE_URL, validatedData.placeId, id);
-      if (hasAd) {
-        return c.json(
-          {
-            success: false,
-            error: "The selected place already has an ad. Only one ad per place is allowed.",
-          },
-          400
-        );
-      }
-    }
+    // Multiple ads per place are now allowed - no check needed
 
     const updatedAd = await adService.updateAd(c.env.DATABASE_URL, id, validatedData);
 

@@ -18,6 +18,7 @@ const mapToSharedAd = (dbAd: typeof ads.$inferSelect, placeName?: string): Ad =>
     title: dbAd.title,
     description: dbAd.description,
     images: dbAd.images,
+    poster: dbAd.poster, // NEW FIELD
     rating: dbAd.rating,
     phone: dbAd.phone || undefined,
     whatsapp: dbAd.whatsapp || undefined,
@@ -95,6 +96,7 @@ export class AdService {
         title: data.title,
         description: data.description,
         images: data.images,
+        poster: data.poster, // NEW FIELD
         rating: data.rating ?? 4.5,
         phone: data.phone,
         whatsapp: data.whatsapp,

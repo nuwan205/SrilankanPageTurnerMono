@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1759309563132,
-      "tag": "0000_dashing_echo",
+      "when": 1759568657950,
+      "tag": "0000_wet_sabra",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1759319032466,
-      "tag": "0001_tidy_roulette",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1759394109065,
-      "tag": "0002_amazing_paibok",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1759405900296,
-      "tag": "0003_dashing_famine",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1759469582266,
-      "tag": "0004_smooth_romulus",
+      "when": 1759573066222,
+      "tag": "0001_same_caretaker",
       "breakpoints": true
     }
   ]

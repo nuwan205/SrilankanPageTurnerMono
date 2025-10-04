@@ -3,25 +3,24 @@ import { toast } from 'sonner';
 import BookLayout, { BookLayoutRef } from './BookLayout';
 import CoverPage from './CoverPage';
 import CategoryPage from './CategoryPage';
-import DestinationPage from './DestinationPage';
 import PlacesPage from './PlacesPage';
 import MapPage from './MapPage';
 
-interface Destination {
-  id: string;
-  name: string;
-  description: string;
-  rating: number;
-  duration: string;
-  highlights: string[];
-  image: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-}
+type BookPage = 'cover' | 'categories' | 'places' | 'map';
 
-type BookPage = 'cover' | 'categories' | 'destinations' | 'places' | 'map';
+interface Ad {
+  id: string;
+  title: string;
+  description: string;
+  poster: string; // Main poster image
+  images: string[]; // Gallery images
+  rating: number;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  link: string;
+  bookingLink?: string;
+}
 
 interface Place {
   id: string;
@@ -36,24 +35,19 @@ interface Place {
     lat: number;
     lng: number;
   };
-  ad?: {
-    id: string;
-    title: string;
-    description: string;
-    images: string[];
-    rating: number;
-    phone?: string;
-    whatsapp?: string;
-    email?: string;
-    link: string;
-    bookingLink?: string;
-  };
+  // Best Time Travel Info
+  bestTime?: string;
+  travelTime?: string;
+  idealFor?: string;
+  // Single ad for backward compatibility
+  ad?: Ad;
+  // Multiple ads list
+  ads?: Ad[];
 }
 
 interface BookState {
   currentPage: BookPage;
   selectedCategory: string | null;
-  selectedDestination: Destination | null;
   selectedPlace: Place | null;
 }
 
@@ -61,13 +55,12 @@ const TourismBook: React.FC = () => {
   const [bookState, setBookState] = useState<BookState>({
     currentPage: 'cover',
     selectedCategory: null,
-    selectedDestination: null,
     selectedPlace: null,
   });
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const bookLayoutRef = useRef<BookLayoutRef>(null);
-  const totalPages = 5; // Cover, Categories, Destinations, Places, Map
+  const totalPages = 4; // Cover, Categories, Places, Map
 
   const handleStartJourney = () => {
     setBookState(prev => ({ ...prev, currentPage: 'categories' }));
@@ -78,19 +71,10 @@ const TourismBook: React.FC = () => {
   const handleCategorySelect = (categoryId: string) => {
     setBookState(prev => ({ 
       ...prev, 
-      currentPage: 'destinations',
+      currentPage: 'places',
       selectedCategory: categoryId 
     }));
     setCurrentPageIndex(2);
-  };
-
-  const handleDestinationSelect = (destination: Destination) => {
-    setBookState(prev => ({ 
-      ...prev, 
-      currentPage: 'places',
-      selectedDestination: destination 
-    }));
-    setCurrentPageIndex(3);
   };
 
   const handlePlaceSelect = (place: Place) => {
@@ -99,7 +83,7 @@ const TourismBook: React.FC = () => {
       currentPage: 'map',
       selectedPlace: place 
     }));
-    setCurrentPageIndex(4);
+    setCurrentPageIndex(3);
   };
 
   const handleBackToCategories = () => {
@@ -107,17 +91,6 @@ const TourismBook: React.FC = () => {
       ...prev, 
       currentPage: 'categories',
       selectedCategory: null 
-    }));
-    // Call the paginate function directly with direction -1 (backward)
-    bookLayoutRef.current?.paginate(-1);
-  };
-
-  const handleBackToDestinations = () => {
-    setBookState(prev => ({ 
-      ...prev, 
-      currentPage: 'destinations',
-      selectedDestination: null,
-      selectedPlace: null 
     }));
     // Call the paginate function directly with direction -1 (backward)
     bookLayoutRef.current?.paginate(-1);
@@ -136,7 +109,7 @@ const TourismBook: React.FC = () => {
   const handlePageChange = (pageIndex: number) => {
     // Validate navigation requirements and show gentle messages
     if (pageIndex === 2 && !bookState.selectedCategory) {
-      toast.info("Please select a category to view destinations Page! 🗺️", {
+      toast.info("Please select a category to view places! 🗺️", {
         duration: 4000,
         style: {
           background: '#ffffff',
@@ -149,22 +122,8 @@ const TourismBook: React.FC = () => {
       return; // Don't navigate
     }
     
-    if (pageIndex === 3 && !bookState.selectedDestination) {
-      toast.info("Please select a destination to view places Page! 🏞️", {
-        duration: 4000,
-        style: {
-          background: '#ffffff',
-          color: '#1f2937',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        },
-        descriptionClassName: 'text-gray-700 font-medium',
-      });
-      return; // Don't navigate
-    }
-    
-    if (pageIndex === 4 && !bookState.selectedPlace) {
-      toast.info("Please choose a place to view the map Page! 📍", {
+    if (pageIndex === 3 && !bookState.selectedPlace) {
+      toast.info("Please choose a place to view the map! 📍", {
         duration: 4000,
         style: {
           background: '#ffffff',
@@ -183,7 +142,6 @@ const TourismBook: React.FC = () => {
         setBookState({
           currentPage: 'cover',
           selectedCategory: null,
-          selectedDestination: null,
           selectedPlace: null,
         });
         break;
@@ -191,7 +149,6 @@ const TourismBook: React.FC = () => {
         setBookState(prev => ({
           ...prev,
           currentPage: 'categories',
-          selectedDestination: null,
           selectedPlace: null,
         }));
         break;
@@ -199,22 +156,12 @@ const TourismBook: React.FC = () => {
         if (bookState.selectedCategory) {
           setBookState(prev => ({
             ...prev,
-            currentPage: 'destinations',
-            selectedDestination: null,
-            selectedPlace: null,
-          }));
-        }
-        break;
-      case 3:
-        if (bookState.selectedDestination) {
-          setBookState(prev => ({
-            ...prev,
             currentPage: 'places',
             selectedPlace: null,
           }));
         }
         break;
-      case 4:
+      case 3:
         if (bookState.selectedPlace) {
           setBookState(prev => ({
             ...prev,
@@ -233,28 +180,18 @@ const TourismBook: React.FC = () => {
       case 'categories':
         return <CategoryPage onCategorySelect={handleCategorySelect} />;
       
-      case 'destinations':
-        return (
-          <DestinationPage
-            categoryId={bookState.selectedCategory || ''}
-            onDestinationSelect={handleDestinationSelect}
-            onBack={handleBackToCategories}
-          />
-        );
-      
       case 'places':
-        return bookState.selectedDestination ? (
+        return bookState.selectedCategory ? (
           <PlacesPage
-            destination={bookState.selectedDestination}
+            categoryId={bookState.selectedCategory}
             onPlaceSelect={handlePlaceSelect}
-            onBack={handleBackToDestinations}
+            onBack={handleBackToCategories}
           />
         ) : null;
       
       case 'map':
         return bookState.selectedPlace ? (
           <MapPage
-            destination={bookState.selectedDestination!}
             place={bookState.selectedPlace}
             onBack={handleBackToPlaces}
           />
@@ -268,8 +205,7 @@ const TourismBook: React.FC = () => {
   // Determine if navigation should be shown based on current state
   const shouldShowNavigation = () => {
     if (bookState.currentPage === 'cover') return false;
-    if (bookState.currentPage === 'destinations' && !bookState.selectedCategory) return false;
-    if (bookState.currentPage === 'places' && !bookState.selectedDestination) return false;
+    if (bookState.currentPage === 'places' && !bookState.selectedCategory) return false;
     if (bookState.currentPage === 'map' && !bookState.selectedPlace) return false;
     return true;
   };

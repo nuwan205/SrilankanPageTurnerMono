@@ -89,79 +89,30 @@ export const validateImageUpload = (data: unknown): ImageUpload => {
   return ImageUploadSchema.parse(data);
 };
 
-// Destination schemas
-export const DestinationSchema = z.object({
-  id: z.string(),
-  categoryId: z.string().min(1, "Category is required"),
-  title: z.string().min(1, "Title is required").max(200, "Title too long"),
-  description: z.string().min(1, "Description is required").max(500, "Description must be 500 characters or less"),
-  rating: z.number().min(0).max(5).default(0),
-  duration: z.string().min(1, "Duration is required"),
-  highlights: z.array(z.string()).min(1, "At least one highlight required"),
-  images: z.array(z.string().regex(/^https?:\/\/.+/, "Valid image URL required")).min(1, "At least one image required").max(5, "Maximum 5 images allowed"),
-  enabled: z.boolean().default(true),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const CreateDestinationSchema = DestinationSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const UpdateDestinationSchema = CreateDestinationSchema.partial();
-
-export const DestinationQuerySchema = z.object({
-  categoryId: z.string().optional(),
-  enabled: z.boolean().optional(),
-  search: z.string().optional(),
-});
-
-export type Destination = z.infer<typeof DestinationSchema>;
-export type CreateDestination = z.infer<typeof CreateDestinationSchema>;
-export type UpdateDestination = z.infer<typeof UpdateDestinationSchema>;
-export type DestinationQuery = z.infer<typeof DestinationQuerySchema>;
-
-// API endpoint response types
-export type DestinationsResponse = ApiResponse<{
-  destinations: Destination[];
-}>;
-
-export type DestinationResponse = ApiResponse<Destination>;
-
-// Validation helpers
-export const validateCreateDestination = (data: unknown): CreateDestination => {
-  return CreateDestinationSchema.parse(data);
-};
-
-export const validateUpdateDestination = (data: unknown): UpdateDestination => {
-  return UpdateDestinationSchema.parse(data);
-};
-
-export const validateDestinationQuery = (data: unknown): DestinationQuery => {
-  return DestinationQuerySchema.parse(data);
-};
-
 // Place schemas
 export const PlaceSchema = z.object({
   id: z.string(),
-  destinationId: z.string().min(1, "Destination is required"),
+  categoryIds: z.array(z.string()).min(1, "At least one category is required"),
   name: z.string().min(1, "Name is required").max(200, "Name too long"),
-  description: z.string().min(1, "Description is required").max(500, "Description must be 500 characters or less"),
+  description: z.string().min(1, "Description is required"),
   rating: z.number().min(0).max(5).default(0),
   duration: z.string().min(1, "Duration is required"),
-  timeDuration: z.string().min(1, "Time duration is required"),
   highlights: z.array(z.string()).min(1, "At least one highlight required"),
   images: z.array(z.string().regex(/^https?:\/\/.+/, "Valid image URL required")).min(1, "At least one image required").max(3, "Maximum 3 images allowed"),
   location: z.object({
     lat: z.number(),
     lng: z.number(),
   }),
+  // Travel Tips
+  bestTime: z.string().min(1, "Best time is required"),
+  travelTime: z.string().min(1, "Travel time is required"),
+  idealFor: z.string().min(1, "Ideal for is required"),
+  // Single ad for backward compatibility
   ad: z.object({
     id: z.string(),
     title: z.string(),
     description: z.string(),
+    poster: z.string().regex(/^https?:\/\/.+/, "Valid poster image URL required"),
     images: z.array(z.string()),
     rating: z.number(),
     phone: z.string().optional(),
@@ -170,6 +121,20 @@ export const PlaceSchema = z.object({
     link: z.string(),
     bookingLink: z.string().optional(),
   }).optional(),
+  // Multiple ads array
+  ads: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    poster: z.string().regex(/^https?:\/\/.+/, "Valid poster image URL required"),
+    images: z.array(z.string()),
+    rating: z.number(),
+    phone: z.string().optional(),
+    whatsapp: z.string().optional(),
+    email: z.string().optional(),
+    link: z.string(),
+    bookingLink: z.string().optional(),
+  })).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -183,7 +148,7 @@ export const CreatePlaceSchema = PlaceSchema.omit({
 export const UpdatePlaceSchema = CreatePlaceSchema.partial();
 
 export const PlaceQuerySchema = z.object({
-  destinationId: z.string().optional(),
+  categoryId: z.string().optional(),
 });
 
 export type Place = z.infer<typeof PlaceSchema>;
@@ -218,6 +183,7 @@ export const AdSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().min(1, "Description is required").max(600, "Description must be 600 characters or less"),
   images: z.array(z.string().regex(/^https?:\/\/.+/, "Valid image URL required")).min(1, "At least one image required").max(5, "Maximum 5 images allowed"),
+  poster: z.string().regex(/^https?:\/\/.+/, "Valid poster image URL required"), // NEW FIELD
   rating: z.number().min(0).max(5).default(4.5),
   phone: z.string().max(50).optional(),
   whatsapp: z.string().max(50).optional(),

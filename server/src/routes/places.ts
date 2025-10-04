@@ -23,7 +23,7 @@ const placeRoutes = new Hono<{ Bindings: Bindings }>();
 /**
  * Get all places with optional filtering
  * GET /api/places
- * Query params: destinationId
+ * Query params: categoryId
  * Note: This endpoint is public and doesn't require authentication
  */
 placeRoutes.get("/", async (c) => {
@@ -31,7 +31,7 @@ placeRoutes.get("/", async (c) => {
     const query = c.req.query();
     
     const placeQuery: PlaceQuery = {
-      destinationId: query.destinationId,
+      categoryId: query.categoryId,
     };
 
     const places = await placeService.getPlaces(c.env.DATABASE_URL, placeQuery);
@@ -107,24 +107,26 @@ placeRoutes.post("/", requireAuth, async (c) => {
     const body = await c.req.json();
 
     // Validate required fields
-    if (!body.name || !body.description || !body.destinationId || !body.location || !body.timeDuration || !body.highlights) {
+    if (!body.name || !body.description || !body.categoryIds || !Array.isArray(body.categoryIds) || body.categoryIds.length === 0 || !body.location || !body.highlights || !body.bestTime || !body.travelTime || !body.idealFor) {
       return c.json({
         success: false,
         error: "Missing required fields",
-        message: "Please provide name, description, destinationId, location, timeDuration, and highlights",
+        message: "Please provide name, description, categoryIds (array with at least one category), location, highlights, bestTime, travelTime, and idealFor",
       } as ApiResponse, 400);
     }
 
     const placeData: CreatePlace = {
-      destinationId: body.destinationId,
+      categoryIds: body.categoryIds,
       name: body.name,
       description: body.description,
       rating: body.rating || 0,
       duration: body.duration,
-      timeDuration: body.timeDuration,
       highlights: body.highlights || [],
       images: body.images || [],
       location: body.location,
+      bestTime: body.bestTime,
+      travelTime: body.travelTime,
+      idealFor: body.idealFor,
     };
 
     const newPlace = await placeService.createPlace(c.env.DATABASE_URL, placeData);
@@ -169,11 +171,13 @@ placeRoutes.put("/:id", requireAuth, async (c) => {
       description: body.description,
       rating: body.rating,
       duration: body.duration,
-      timeDuration: body.timeDuration,
       highlights: body.highlights,
       images: body.images,
       location: body.location,
-      destinationId: body.destinationId,
+      categoryIds: body.categoryIds,
+      bestTime: body.bestTime,
+      travelTime: body.travelTime,
+      idealFor: body.idealFor,
     };
 
     const updatedPlace = await placeService.updatePlace(c.env.DATABASE_URL, id, placeData);

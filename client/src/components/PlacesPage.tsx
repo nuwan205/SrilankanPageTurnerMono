@@ -6,49 +6,45 @@ import { apiClient } from '@/lib/api';
 import type { Place as ApiPlace } from '@/lib/api';
 import { toast } from 'sonner';
 
+interface Ad {
+  id: string;
+  title: string;
+  description: string;
+  poster: string; // Main poster image
+  images: string[]; // Gallery images
+  rating: number;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  link: string;
+  bookingLink?: string;
+}
+
 interface Place {
   id: string;
   name: string;
   description: string;
   rating: number;
   duration: string;
-  timeDuration?: string;
   highlights?: string[];
   images: string[];
   location: {
     lat: number;
     lng: number;
   };
-  ad?: {
-    id: string;
-    title: string;
-    description: string;
-    images: string[];
-    rating: number;
-    phone?: string;
-    whatsapp?: string;
-    email?: string;
-    link: string;
-    bookingLink?: string;
-  };
+  bestTime?: string;
+  travelTime?: string;
+  idealFor?: string;
+  // Single ad for backward compatibility
+  ad?: Ad;
+  // Multiple ads list
+  ads?: Ad[];
 }
 
-interface Destination {
-  id: string;
-  name: string;
-  description: string;
-  rating: number;
-  duration: string;
-  highlights: string[];
-  image: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-}
+
 
 interface PlacesPageProps {
-  destination: Destination;
+  categoryId: string;
   onPlaceSelect: (place: Place) => void;
   onBack: () => void;
 }
@@ -105,11 +101,12 @@ const BookLoadingSpinner = () => (
   </div>
 );
 
-const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onBack }) => {
+const PlacesPage: React.FC<PlacesPageProps> = ({ categoryId, onPlaceSelect, onBack }) => {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [imageIndices, setImageIndices] = useState<{ [key: string]: number }>({});
+  const [categoryTitle, setCategoryTitle] = useState('');
 
   // Fetch places from API
   useEffect(() => {
@@ -117,8 +114,19 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
       try {
         setLoading(true);
         
+        // Fetch category name
+        try {
+          const categoriesResponse = await apiClient.getCategories();
+          if (categoriesResponse.success && categoriesResponse.data) {
+            const category = categoriesResponse.data.categories.find(cat => cat.id === categoryId);
+            setCategoryTitle(category?.title || 'Category');
+          }
+        } catch {
+          setCategoryTitle('Category');
+        }
+        
         const response = await apiClient.getPlaces({
-          destinationId: destination.id,
+          categoryId: categoryId,
         });
 
         if (response.success && response.data) {
@@ -129,11 +137,14 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
             description: place.description,
             rating: place.rating,
             duration: place.duration,
-            timeDuration: place.timeDuration,
             highlights: place.highlights,
             images: place.images,
             location: place.location,
+            bestTime: place.bestTime,
+            travelTime: place.travelTime,
+            idealFor: place.idealFor,
             ad: place.ad, // Include ad data if present
+            ads: place.ads, // Include ads array if present
           }));
 
           setPlaces(mappedPlaces);
@@ -154,7 +165,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
     };
 
     loadPlaces();
-  }, [destination.id]);
+  }, [categoryId]);
 
   // Auto-play carousel effect
   useEffect(() => {
@@ -200,7 +211,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Destinations
+            Back to Categories
           </button>
           
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
@@ -209,7 +220,7 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
                 Places to Visit
               </h1>
               <p className="text-lg text-muted-foreground">
-                <span className="font-bold text-primary">Choose your place</span> and discover amazing experiences in {destination.name}
+                <span className="font-bold text-primary">Choose your place</span> and discover amazing experiences{categoryTitle && ` in ${categoryTitle}`}
               </p>
             </div>
             
@@ -325,16 +336,29 @@ const PlacesPage: React.FC<PlacesPageProps> = ({ destination, onPlaceSelect, onB
                     {place.name}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-3 line-clamp-3">
-                    {place.description}
+                    {place.description
+                      .replace(/<[^>]*>/g, '') // Remove HTML tags
+                      .replace(/#{1,3}\s+/g, '') // Remove markdown headings
+                      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
+                      .replace(/\*(.*?)\*/g, '$1') // Remove italic markers
+                      .replace(/^[•\-\*]\s+/gm, '') // Remove bullet points
+                      .replace(/^\d+\.\s+/gm, '') // Remove numbered list markers
+                      .replace(/\n+/g, ' ') // Replace line breaks with spaces
+                      .trim()
+                    }
                   </p>
                   
-                  {/* Time Duration */}
-                  {place.timeDuration && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                      <Clock className="w-3 h-3" />
-                      <span>{place.timeDuration}</span>
+                  {/* Travel Info */}
+                  <div className="space-y-1.5 mb-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1">{place.travelTime}</span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1">{place.idealFor}</span>
+                    </div>
+                  </div>
 
                   {/* Highlights */}
                   {place.highlights && place.highlights.length > 0 && (

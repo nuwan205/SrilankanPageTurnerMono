@@ -199,7 +199,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ onCategorySelect }) => {
                   {/* Call to Action */}
                   <div className="flex items-center justify-between">
                     <span className="text-primary font-medium text-sm group-hover:text-primary-glow transition-colors duration-300">
-                      Explore Destinations
+                      Explore Places
                     </span>
                     <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform duration-300" />
                   </div>

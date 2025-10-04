@@ -34,7 +34,7 @@ const AdminLayout: React.FC = () => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Categories', href: '/admin/categories', icon: FolderTree },
-    { name: 'Destinations', href: '/admin/destinations', icon: MapPin },
+    { name: 'Places', href: '/admin/places', icon: MapPin },
   ];
 
   const isActive = (href: string) => {

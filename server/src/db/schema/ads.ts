@@ -9,6 +9,7 @@ export const ads = pgTable("ads", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
   images: jsonb("images").$type<string[]>().notNull(),
+  poster: text("poster").notNull(), // NEW FIELD: Single poster/company image
   rating: real("rating").notNull().default(4.5),
   phone: varchar("phone", { length: 50 }),
   whatsapp: varchar("whatsapp", { length: 50 }),

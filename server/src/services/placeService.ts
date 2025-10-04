@@ -1,7 +1,8 @@
 import { getDb } from "../config/drizzle";
 import { places } from "../db/schema/places";
+import { placesToCategories } from "../db/schema/placesToCategories";
 import { ads } from "../db/schema/ads";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import type { 
   Place as SharedPlace, 
   CreatePlace, 
@@ -18,17 +19,32 @@ export class PlaceService {
     const db = getDb(databaseUrl);
     const id = `place-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
+    // Extract categoryIds from data
+    const { categoryIds, ...placeData } = data;
+
+    // Insert the place
     const [place] = await db
       .insert(places)
       .values({
         id,
-        ...data,
+        ...placeData,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
-    return this.mapToSharedPlace(place);
+    // Insert category associations
+    if (categoryIds && categoryIds.length > 0) {
+      await db.insert(placesToCategories).values(
+        categoryIds.map(categoryId => ({
+          placeId: id,
+          categoryId,
+          createdAt: new Date(),
+        }))
+      );
+    }
+
+    return this.mapToSharedPlace(place, [], categoryIds);
   }
 
   /**
@@ -36,49 +52,98 @@ export class PlaceService {
    */
   async getPlaces(databaseUrl: string, query: Partial<PlaceQuery> = {}): Promise<SharedPlace[]> {
     const db = getDb(databaseUrl);
-    const { destinationId } = query;
+    const { categoryId } = query;
 
-    // Build WHERE conditions
-    const conditions = [];
-    
-    if (destinationId) {
-      conditions.push(eq(places.destinationId, destinationId));
+    let placeIds: string[] | undefined;
+
+    // If filtering by category, get place IDs from junction table
+    if (categoryId) {
+      const placeCategories = await db
+        .select({ placeId: placesToCategories.placeId })
+        .from(placesToCategories)
+        .where(eq(placesToCategories.categoryId, categoryId));
+      
+      placeIds = placeCategories.map(pc => pc.placeId);
+      
+      // If no places found for this category, return empty array
+      if (placeIds.length === 0) {
+        return [];
+      }
     }
 
+    // Build WHERE conditions
+    const conditions = placeIds ? [inArray(places.id, placeIds)] : [];
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Get all results with left join to ads
+    // Get all places
     const placesList = await db
-      .select({
-        place: places,
-        ad: ads,
-      })
+      .select()
       .from(places)
-      .leftJoin(ads, eq(places.id, ads.placeId))
       .where(whereClause)
       .orderBy(desc(places.createdAt));
 
-    return placesList.map(({ place, ad }) => this.mapToSharedPlace(place, ad));
+    // Get category IDs for each place
+    const allPlaceIds = placesList.map((place) => place.id);
+    const categoriesByPlace: Record<string, string[]> = {};
+    const adsByPlace: Record<string, any[]> = {};
+
+    if (allPlaceIds.length > 0) {
+      // Get categories
+      const placeCategories = await db
+        .select()
+        .from(placesToCategories)
+        .where(inArray(placesToCategories.placeId, allPlaceIds));
+
+      placeCategories.forEach(pc => {
+        categoriesByPlace[pc.placeId] ??= [];
+        categoriesByPlace[pc.placeId]!.push(pc.categoryId);
+      });
+
+      // Get all ads for these places
+      const allAds = await db
+        .select()
+        .from(ads)
+        .where(inArray(ads.placeId, allPlaceIds));
+
+      allAds.forEach(ad => {
+        adsByPlace[ad.placeId] ??= [];
+        adsByPlace[ad.placeId]!.push(ad);
+      });
+    }
+
+    return placesList.map((place) => 
+      this.mapToSharedPlace(place, adsByPlace[place.id] || [], categoriesByPlace[place.id] || [])
+    );
   }
 
   /**
-   * Get a single place by ID, including its ad
+   * Get a single place by ID, including its ads
    */
   async getPlaceById(databaseUrl: string, id: string): Promise<SharedPlace | null> {
     const db = getDb(databaseUrl);
-    const result = await db
-      .select({
-        place: places,
-        ad: ads,
-      })
+    const placeResult = await db
+      .select()
       .from(places)
-      .leftJoin(ads, eq(places.id, ads.placeId))
       .where(eq(places.id, id))
       .limit(1);
 
-    if (!result[0]) return null;
+    if (!placeResult[0]) return null;
 
-    return this.mapToSharedPlace(result[0].place, result[0].ad);
+    // Get category IDs for this place
+    const placeCategories = await db
+      .select({ categoryId: placesToCategories.categoryId })
+      .from(placesToCategories)
+      .where(eq(placesToCategories.placeId, id));
+
+    const categoryIds = placeCategories.map(pc => pc.categoryId);
+
+    // Get all ads for this place
+    const placeAds = await db
+      .select()
+      .from(ads)
+      .where(eq(ads.placeId, id));
+
+    return this.mapToSharedPlace(placeResult[0], placeAds, categoryIds);
   }
 
   /**
@@ -86,16 +151,50 @@ export class PlaceService {
    */
   async updatePlace(databaseUrl: string, id: string, data: UpdatePlace): Promise<SharedPlace | null> {
     const db = getDb(databaseUrl);
+    
+    // Extract categoryIds from data
+    const { categoryIds, ...placeData } = data;
+
+    // Update the place
     const [place] = await db
       .update(places)
       .set({
-        ...data,
+        ...placeData,
         updatedAt: new Date(),
       })
       .where(eq(places.id, id))
       .returning();
 
-    return place ? this.mapToSharedPlace(place) : null;
+    if (!place) return null;
+
+    // Update category associations if provided
+    if (categoryIds !== undefined) {
+      // Delete existing associations
+      await db
+        .delete(placesToCategories)
+        .where(eq(placesToCategories.placeId, id));
+
+      // Insert new associations
+      if (categoryIds.length > 0) {
+        await db.insert(placesToCategories).values(
+          categoryIds.map(categoryId => ({
+            placeId: id,
+            categoryId,
+            createdAt: new Date(),
+          }))
+        );
+      }
+    }
+
+    // Get current category IDs
+    const placeCategories = await db
+      .select({ categoryId: placesToCategories.categoryId })
+      .from(placesToCategories)
+      .where(eq(placesToCategories.placeId, id));
+
+    const finalCategoryIds = placeCategories.map(pc => pc.categoryId);
+
+    return this.mapToSharedPlace(place, [], finalCategoryIds);
   }
 
   /**
@@ -112,43 +211,47 @@ export class PlaceService {
   }
 
   /**
-   * Get places count for a destination
+   * Get places count for a category
    */
-  async getPlacesCountByDestination(databaseUrl: string, destinationId: string): Promise<number> {
+  async getPlacesCountByCategory(databaseUrl: string, categoryId: string): Promise<number> {
     const db = getDb(databaseUrl);
     const result = await db
-      .select()
-      .from(places)
-      .where(eq(places.destinationId, destinationId));
+      .select({ placeId: placesToCategories.placeId })
+      .from(placesToCategories)
+      .where(eq(placesToCategories.categoryId, categoryId));
 
     return result.length;
   }
 
   /**
-   * Map database place to shared type, including ad if present
+   * Map database place to shared type, including ads if present
    */
-  private mapToSharedPlace(place: any, ad?: any): SharedPlace {
+  private mapToSharedPlace(place: any, adsArray: any[] = [], categoryIds: string[] = []): SharedPlace {
     const mappedPlace: SharedPlace = {
       id: place.id,
-      destinationId: place.destinationId,
+      categoryIds: categoryIds,
       name: place.name,
       description: place.description,
       rating: place.rating,
       duration: place.duration,
-      timeDuration: place.timeDuration,
       highlights: place.highlights as string[],
       images: place.images as string[],
       location: place.location as { lat: number; lng: number },
+      bestTime: place.bestTime,
+      travelTime: place.travelTime,
+      idealFor: place.idealFor,
       createdAt: place.createdAt.toISOString(),
       updatedAt: place.updatedAt.toISOString(),
     };
 
-    // Add ad information if it exists
-    if (ad) {
-      (mappedPlace as any).ad = {
+    // Add ads information if they exist
+    if (adsArray && adsArray.length > 0) {
+      // Map ads to the expected format
+      (mappedPlace as any).ads = adsArray.map(ad => ({
         id: ad.id,
         title: ad.title,
         description: ad.description,
+        poster: ad.poster,
         images: ad.images,
         rating: ad.rating,
         phone: ad.phone || undefined,
@@ -156,7 +259,10 @@ export class PlaceService {
         email: ad.email || undefined,
         link: ad.link,
         bookingLink: ad.bookingLink || undefined,
-      };
+      }));
+
+      // For backward compatibility, set the first ad as 'ad'
+      (mappedPlace as any).ad = (mappedPlace as any).ads[0];
     }
 
     return mappedPlace;
